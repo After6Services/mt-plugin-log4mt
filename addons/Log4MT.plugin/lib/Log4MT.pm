@@ -55,8 +55,6 @@ sub init_request {
                     . __PACKAGE__
                     . ' init_request()' );
 
-    # my $app = MT->instance();
-
     if (    $q->param('old_pass')
          or $q->param('hint')
          or $q->param('username') && $q->param('password') )

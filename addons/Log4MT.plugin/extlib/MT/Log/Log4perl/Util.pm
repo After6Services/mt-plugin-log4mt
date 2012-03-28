@@ -2,10 +2,6 @@ package MT::Log::Log4perl::Util;
 # $Id: Util.pm 804 2008-02-14 22:56:05Z jay $
 use strict; use warnings; use Data::Dumper;
 
-use strict;
-
-# use Exporter;
-# @MT::Log::Log4perl::Util::ISA = qw( Exporter );
 use base 'Exporter';
 use vars qw( @EXPORT_OK );
 @EXPORT_OK = qw( indent makedef err emergency_log l4mtdump trace );
