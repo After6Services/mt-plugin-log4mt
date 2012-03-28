@@ -166,6 +166,7 @@ sub render {
        $self->{info_needed}->{C} or
        $self->{info_needed}->{l} or
        $self->{info_needed}->{M} or
+       $self->{info_needed}->{T} or
        0
       ) {
         my ($package, $filename, $line, 
@@ -269,9 +270,12 @@ sub render {
 
         # Stack trace wanted?
     if($self->{info_needed}->{T}) {
+        local $Carp::CarpLevel =
+              $Carp::CarpLevel + $caller_level;
         my $mess = Carp::longmess(); 
         chomp($mess);
-        $mess =~ s/(?:\A\s*at.*\n|^\s*Log::Log4perl.*\n|^\s*)//mg;
+        # $mess =~ s/(?:\A\s*at.*\n|^\s*Log::Log4perl.*\n|^\s*)//mg;
+        $mess =~ s/(?:\A\s*at.*\n|^\s*)//mg;
         $mess =~ s/\n/, /g;
         $info{T} = $mess;
     }
@@ -529,6 +533,7 @@ replaced by the logging engine when it's time to log the message:
     %c Category of the logging event.
     %C Fully qualified package (or class) name of the caller
     %d Current date in yyyy/MM/dd hh:mm:ss format
+    %d{...} Current date in customized format (see below)
     %F File where the logging event occurred
     %H Hostname (if Sys::Hostname is available)
     %l Fully qualified name of the calling method followed by the
@@ -630,6 +635,7 @@ specification:
     E        day in week             (Text)           Tuesday
     D        day in year             (Number)         189
     a        am/pm marker            (Text)           PM
+    e        epoch seconds           (Number)         1315011604
 
     (Text): 4 or more pattern letters--use full form, < 4--use short or 
             abbreviated form if one exists. 

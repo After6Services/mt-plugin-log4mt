@@ -14,7 +14,7 @@ use Log::Log4perl::Level;
 use Log::Log4perl::Config;
 use Log::Log4perl::Appender;
 
-our $VERSION = '1.31';
+our $VERSION = '1.36';
 
    # set this to '1' if you're using a wrapper
    # around Log::Log4perl
@@ -65,12 +65,13 @@ our $LOGDIE_MESSAGE_ON_STDERR = 1;
 our $LOGEXIT_CODE             = 1;
 our %IMPORT_CALLED;
 
+our $EASY_CLOSURES = {};
+use constant _INTERNAL_DEBUG => 0;
+
 ##################################################
 sub import {
 ##################################################
     my($class) = shift;
-
-    no strict qw(refs);
 
     my $caller_pkg = caller();
 
@@ -92,7 +93,7 @@ sub import {
 
     if(exists $tags{get_logger}) {
         # Export get_logger into the calling module's 
-
+        no strict qw(refs);
         *{"$caller_pkg\::get_logger"} = *get_logger;
 
         delete $tags{get_logger};
@@ -106,6 +107,7 @@ sub import {
                # mess it up.
             my $value = $
                         Log::Log4perl::Level::PRIORITY{$key};
+            no strict qw(refs);
             *{"$name"} = \$value;
         }
 
@@ -118,60 +120,57 @@ sub import {
 
             # Define default logger object in caller's package
         my $logger = get_logger("$caller_pkg");
-        ${$caller_pkg . '::_default_logger'} = $logger;
         
             # Define DEBUG, INFO, etc. routines in caller's package
         for(qw(TRACE DEBUG INFO WARN ERROR FATAL ALWAYS)) {
             my $level   = $_;
             $level = "OFF" if $level eq "ALWAYS";
             my $lclevel = lc($_);
-            *{"$caller_pkg\::$_"} = sub { 
+            easy_closure_create($caller_pkg, $_, sub {
                 Log::Log4perl::Logger::init_warn() unless 
                     $Log::Log4perl::Logger::INITIALIZED or
                     $Log::Log4perl::Logger::NON_INIT_WARNED;
                 $logger->{$level}->($logger, @_, $level);
-            };
+            }, $logger);
         }
 
             # Define LOGCROAK, LOGCLUCK, etc. routines in caller's package
         for(qw(LOGCROAK LOGCLUCK LOGCARP LOGCONFESS)) {
             my $method = "Log::Log4perl::Logger::" . lc($_);
 
-            *{"$caller_pkg\::$_"} = sub {
+            easy_closure_create($caller_pkg, $_, sub {
                 unshift @_, $logger;
                 goto &$method;
-            };
+            }, $logger);
         }
 
             # Define LOGDIE, LOGWARN
+         easy_closure_create($caller_pkg, "LOGDIE", sub {
+             Log::Log4perl::Logger::init_warn() unless 
+                     $Log::Log4perl::Logger::INITIALIZED or
+                     $Log::Log4perl::Logger::NON_INIT_WARNED;
+             $logger->{FATAL}->($logger, @_, "FATAL");
+             $Log::Log4perl::LOGDIE_MESSAGE_ON_STDERR ?
+                 CORE::die(Log::Log4perl::Logger::callerline(join '', @_)) :
+                 exit $Log::Log4perl::LOGEXIT_CODE;
+         }, $logger);
 
-        *{"$caller_pkg\::LOGDIE"} = sub {
-            Log::Log4perl::Logger::init_warn() unless 
-                    $Log::Log4perl::Logger::INITIALIZED or
-                    $Log::Log4perl::Logger::NON_INIT_WARNED;
-            $logger->{FATAL}->($logger, @_, "FATAL");
-            $Log::Log4perl::LOGDIE_MESSAGE_ON_STDERR ?
-                CORE::die(Log::Log4perl::Logger::callerline(join '', @_)) :
-                exit $Log::Log4perl::LOGEXIT_CODE;
-        };
-
-        *{"$caller_pkg\::LOGEXIT"} = sub {
+         easy_closure_create($caller_pkg, "LOGEXIT", sub {
             Log::Log4perl::Logger::init_warn() unless 
                     $Log::Log4perl::Logger::INITIALIZED or
                     $Log::Log4perl::Logger::NON_INIT_WARNED;
             $logger->{FATAL}->($logger, @_, "FATAL");
             exit $Log::Log4perl::LOGEXIT_CODE;
-        };
+         }, $logger);
 
-        *{"$caller_pkg\::LOGWARN"} = sub { 
+        easy_closure_create($caller_pkg, "LOGWARN", sub {
             Log::Log4perl::Logger::init_warn() unless 
                     $Log::Log4perl::Logger::INITIALIZED or
                     $Log::Log4perl::Logger::NON_INIT_WARNED;
             $logger->{WARN}->($logger, @_, "WARN");
-            $Log::Log4perl::LOGDIE_MESSAGE_ON_STDERR ?
-            CORE::warn(Log::Log4perl::Logger::callerline(join '', @_)) :
-            exit $Log::Log4perl::LOGEXIT_CODE;
-        };
+            CORE::warn(Log::Log4perl::Logger::callerline(join '', @_))
+                if $Log::Log4perl::LOGDIE_MESSAGE_ON_STDERR;
+        }, $logger);
     }
 
     if(exists $tags{':nowarn'}) {
@@ -504,6 +503,90 @@ sub infiltrate_lwp {  #
     };
 }
 
+##################################################
+sub easy_closure_create {
+##################################################
+    my($caller_pkg, $entry, $code, $logger) = @_;
+
+    no strict 'refs';
+
+    print("easy_closure: Setting shortcut $caller_pkg\::$entry ", 
+         "(logger=$logger\n") if _INTERNAL_DEBUG;
+
+    $EASY_CLOSURES->{ $caller_pkg }->{ $entry } = $logger;
+    *{"$caller_pkg\::$entry"} = $code;
+}
+
+###########################################
+sub easy_closure_cleanup {
+###########################################
+    my($caller_pkg, $entry) = @_;
+
+    no warnings 'redefine';
+    no strict 'refs';
+
+    my $logger = $EASY_CLOSURES->{ $caller_pkg }->{ $entry };
+
+    print("easy_closure: Nuking easy shortcut $caller_pkg\::$entry ", 
+         "(logger=$logger\n") if _INTERNAL_DEBUG;
+
+    *{"$caller_pkg\::$entry"} = sub { };
+    delete $EASY_CLOSURES->{ $caller_pkg }->{ $entry };
+}
+
+##################################################
+sub easy_closure_category_cleanup {
+##################################################
+    my($caller_pkg) = @_;
+
+    if(! exists $EASY_CLOSURES->{ $caller_pkg } ) {
+        return 1;
+    }
+
+    for my $entry ( keys %{ $EASY_CLOSURES->{ $caller_pkg } } ) {
+        easy_closure_cleanup( $caller_pkg, $entry );
+    }
+
+    delete $EASY_CLOSURES->{ $caller_pkg };
+}
+
+###########################################
+sub easy_closure_global_cleanup {
+###########################################
+
+    for my $caller_pkg ( keys %$EASY_CLOSURES ) {
+        easy_closure_category_cleanup( $caller_pkg );
+    }
+}
+
+###########################################
+sub easy_closure_logger_remove {
+###########################################
+    my($class, $logger) = @_;
+
+    PKG: for my $caller_pkg ( keys %$EASY_CLOSURES ) {
+        for my $entry ( keys %{ $EASY_CLOSURES->{ $caller_pkg } } ) {
+            if( $logger == $EASY_CLOSURES->{ $caller_pkg }->{ $entry } ) {
+                easy_closure_category_cleanup( $caller_pkg );
+                next PKG;
+            }
+        }
+    }
+}
+
+##################################################
+sub remove_logger {
+##################################################
+    my ($class, $logger) = @_;
+
+    # Any stealth logger convenience function still using it will
+    # now become a no-op.
+    Log::Log4perl->easy_closure_logger_remove( $logger );
+
+    # Remove the logger from the system
+    delete $Log::Log4perl::Logger::LOGGERS_BY_NAME->{ $logger->{category} };
+}
+
 1;
 
 __END__
@@ -815,11 +898,19 @@ Rather than doing the following:
 
 you can use the following:
 
-    $logger->logwarn();
     $logger->logdie();
 
-These print out log messages in the WARN and FATAL level, respectively,
-and then call the built-in warn() and die() functions. Since there is
+And if instead of using
+
+    warn($message);
+    $logger->warn($message);
+
+to both issue a warning via Perl's warn() mechanism and make sure you have
+the same message in the log file as well, use:
+
+    $logger->logwarn();
+
+Since there is
 an ERROR level between WARN and FATAL, there are two additional helper
 functions in case you'd like to use ERROR for either warn() or die():
 
@@ -1035,7 +1126,7 @@ category, using the format defined for it.
 
 Third example:
 
-    log4j.rootLogger=debug, stdout, R
+    log4j.rootLogger=DEBUG, stdout, R
     log4j.appender.stdout=org.apache.log4j.ConsoleAppender
     log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
     log4j.appender.stdout.layout.ConversionPattern=%5p (%F:%L) - %m%n
@@ -1407,14 +1498,34 @@ to obtain a logger of the category matching the
 I<actual> class of the object, like in
 
         # ... in Bar::new() ...
-    my $logger = Log::Log4perl::get_logger($class);
+    my $logger = Log::Log4perl::get_logger( $class );
 
-This way, you'll make sure the logger logs appropriately, 
-no matter if the method is inherited or called directly.
-C<new()> always gets the
-real class name as an argument and all other methods can determine it 
-via C<ref($self)>), so it shouldn't be a problem to get the right class
-every time.
+In a method other than the constructor, the class name of the actual
+object can be obtained by calling C<ref()> on the object reference, so
+
+    package BaseClass;
+    use Log::Log4perl qw( get_logger );
+
+    sub new { 
+        bless {}, shift; 
+    }
+
+    sub method {
+        my( $self ) = @_;
+
+        get_logger( ref $self )->debug( "message" );
+    }
+
+    package SubClass;
+    our @ISA = qw(BaseClass);
+
+is the recommended pattern to make sure that 
+
+    my $sub = SubClass->new();
+    $sub->meth();
+
+starts logging if the C<"SubClass"> category 
+(and not the C<"BaseClass"> category has logging enabled at the DEBUG level.
 
 =head2 Initialize once and only once
 
@@ -2004,13 +2115,13 @@ your log statements to a file, you can use the following features:
     }
 
 In C<:easy> mode, C<Log::Log4perl> will instantiate a I<stealth logger>
-named C<$_default_logger> and import it into the current package. Also,
-it will introduce the
+and introduce the
 convenience functions C<TRACE>, C<DEBUG()>, C<INFO()>, C<WARN()>, 
 C<ERROR()>, C<FATAL()>, and C<ALWAYS> into the package namespace.
 These functions simply take messages as
-arguments and forward them to C<_default_logger-E<gt>debug()>,
-C<_default_logger-E<gt>info()> and so on.
+arguments and forward them to the stealth loggers methods (C<debug()>,
+C<info()>, and so on).
+
 If a message should never be blocked, regardless of the log level,
 use the C<ALWAYS> function which corresponds to a log level of C<OFF>:
 
@@ -2427,6 +2538,12 @@ To eradicate an appender from the system,
 you need to call C<Log::Log4perl-E<gt>eradicate_appender($appender_name)>
 which will first remove the appender from every logger in the system
 and then will delete all references Log4perl holds to it.
+
+To remove a logger from the system, use 
+C<Log::Log4perl-E<gt>remove_logger($logger)>. After the remaining 
+reference C<$logger> goes away, the logger will self-destruct. If the
+logger in question is a stealth logger, all of its convenience shortcuts
+(DEBUG, INFO, etc) will turn into no-ops.
 
 =head1 How about Log::Dispatch::Config?
 

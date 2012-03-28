@@ -468,7 +468,7 @@ sub create_appender_instance {
     }
 
     if(exists $data->{appender}->{$appname}->{threshold}) {
-            die "threshold keyword needs to be uppercase";
+        die "invalid keyword 'threshold' - perhaps you meant 'Threshold'?";
     }
 
     return $appender;
@@ -569,8 +569,13 @@ sub config_read {
     if (ref($config) eq 'HASH') {   # convert the hashref into a list 
                                     # of name/value pairs
         print "Reading config from hash\n" if _INTERNAL_DEBUG;
-        @text = map { $_ . '=' . $config->{$_} } keys %{$config};
-
+        @text = ();
+        for my $key ( keys %$config ) {
+            if( ref( $config->{$key} ) eq "CODE" ) {
+                $config->{$key} = $config->{$key}->();
+            }
+            push @text, $key . '=' . $config->{$key} . "\n";
+        }
     } elsif (ref $config eq 'SCALAR') {
         print "Reading config from scalar\n" if _INTERNAL_DEBUG;
         @text = split(/\n/,$$config);
@@ -629,7 +634,7 @@ sub config_read {
             }
         }else{
             print "Reading config from file '$config'\n" if _INTERNAL_DEBUG;
-            open FILE, "<$config" or die "Cannot open config file '$config'";
+            open FILE, "<$config" or die "Cannot open config file '$config' - $!";
             print "Reading ", -s $config, " bytes.\n" if _INTERNAL_DEBUG;
             config_file_read(\*FILE, \@text);
             close FILE;
@@ -867,7 +872,7 @@ sub allowed_code_ops {
     }
     else {
         # give back 'undef' instead of an empty arrayref
-        unless( defined @Log::Log4perl::ALLOWED_CODE_OPS_IN_CONFIG_FILE ) {
+        unless( @Log::Log4perl::ALLOWED_CODE_OPS_IN_CONFIG_FILE ) {
             return;
         }
     }
