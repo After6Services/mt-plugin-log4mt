@@ -45,7 +45,7 @@ else {
     err('Log::Log4perl is installed.');
 }
 
-=head 2 new
+=head2 new
 
 RIGHT WAYS to instantiate this module:
   Just a class name MT::Log->get_logger()     or MT::Log::Log4perl->new()
