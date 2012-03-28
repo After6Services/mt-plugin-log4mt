@@ -1,6 +1,6 @@
 package Log::Dispatch::File::Locked;
 BEGIN {
-  $Log::Dispatch::File::Locked::VERSION = '2.27';
+  $Log::Dispatch::File::Locked::VERSION = '2.29';
 }
 
 use strict;
@@ -39,7 +39,7 @@ Log::Dispatch::File::Locked - Subclass of Log::Dispatch::File to facilitate lock
 
 =head1 VERSION
 
-version 2.27
+version 2.29
 
 =head1 SYNOPSIS
 
@@ -70,11 +70,11 @@ Dave Rolsky <autarch@urth.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2010 by Dave Rolsky.
+This software is Copyright (c) 2011 by Dave Rolsky.
 
 This is free software, licensed under:
 
-  The Artistic License 2.0
+  The Artistic License 2.0 (GPL Compatible)
 
 =cut
 

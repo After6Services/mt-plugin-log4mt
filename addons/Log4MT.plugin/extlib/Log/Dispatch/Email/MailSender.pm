@@ -1,6 +1,6 @@
 package Log::Dispatch::Email::MailSender;
 BEGIN {
-  $Log::Dispatch::Email::MailSender::VERSION = '2.27';
+  $Log::Dispatch::Email::MailSender::VERSION = '2.29';
 }
 
 # By: Joseph Annino
@@ -72,7 +72,7 @@ Log::Dispatch::Email::MailSender - Subclass of Log::Dispatch::Email that uses th
 
 =head1 VERSION
 
-version 2.27
+version 2.29
 
 =head1 SYNOPSIS
 
@@ -102,11 +102,11 @@ Dave Rolsky <autarch@urth.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2010 by Dave Rolsky.
+This software is Copyright (c) 2011 by Dave Rolsky.
 
 This is free software, licensed under:
 
-  The Artistic License 2.0
+  The Artistic License 2.0 (GPL Compatible)
 
 =cut
 
