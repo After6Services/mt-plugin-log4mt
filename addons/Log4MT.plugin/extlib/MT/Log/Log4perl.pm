@@ -18,6 +18,9 @@ use MT::Log::Log4perl::Util qw( err trace emergency_log );
 
 *l4mtdump = \&MT::Log::Log4perl::Util::l4mtdump;
 
+use Log::Log4perl ();
+Log::Log4perl->wrapper_register(__PACKAGE__);
+
 sub VERBOSE() { 0 }
 
 # The BEGIN block checks for all dependencies and, if not found, creates

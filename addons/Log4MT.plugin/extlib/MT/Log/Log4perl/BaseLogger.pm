@@ -5,6 +5,8 @@ use Carp;
 use Log::Log4perl;
 use MT::Log::Log4perl::Util qw( err emergency_log  );
 
+Log::Log4perl->wrapper_register(__PACKAGE__);
+
 our @levels = qw[ trace debug info warn error fatal ];    
 
 our @methods = qw(error_die   logcroak      get_level     
