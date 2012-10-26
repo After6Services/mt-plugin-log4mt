@@ -16,7 +16,10 @@ use vars qw( @EXPORT_OK %EXPORT_TAGS );
 
 use MT::Log::Log4perl::Util qw( err trace emergency_log );
 
-*l4mtdump = \&MT::Log::Log4perl::Util::l4mtdump;
+{
+    no warnings 'once';
+    *l4mtdump = \&MT::Log::Log4perl::Util::l4mtdump;
+}
 
 use Log::Log4perl ();
 Log::Log4perl->wrapper_register(__PACKAGE__);

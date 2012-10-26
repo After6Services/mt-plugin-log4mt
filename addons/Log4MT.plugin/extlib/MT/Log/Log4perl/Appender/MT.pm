@@ -12,7 +12,8 @@ package MT::Log::Log4perl::Appender::MT;
 
 our @ISA = qw(Log::Log4perl::Appender);
 
-# use strict;
+use strict;
+use warnings;
 use MT;
 use MT::Log;
 
@@ -44,6 +45,8 @@ sub log {
 
     printf STDERR "\n-- %s - LOG() from %s:\n", (ref($self)||''), ((caller(1))[3]||'');
     print STDERR "PARAMS: ".Dumper(\%params);
+
+    my $log_data;
 
     require MT::Log::Log4perl;
     my $logfile = MT::Log::Log4perl->new('file')
