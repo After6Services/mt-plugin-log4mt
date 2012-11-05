@@ -1,6 +1,6 @@
 package Log::Dispatch::Email::MailSend;
-BEGIN {
-  $Log::Dispatch::Email::MailSend::VERSION = '2.29';
+{
+  $Log::Dispatch::Email::MailSend::VERSION = '2.32';
 }
 
 use strict;
@@ -53,7 +53,7 @@ Log::Dispatch::Email::MailSend - Subclass of Log::Dispatch::Email that uses the 
 
 =head1 VERSION
 
-version 2.29
+version 2.32
 
 =head1 SYNOPSIS
 

@@ -6,8 +6,9 @@ use 5.006;
 use strict;
 use warnings;
 
-use Log::Log4perl::Level;
 use Log::Log4perl::Config;
+use Log::Log4perl::Level;
+use Carp;
 
 use constant _INTERNAL_DEBUG => 0;
 
@@ -162,10 +163,20 @@ sub log {
             #not defined, the normal case
         if (! defined $self->{warp_message} ){
                 #join any message elements
-            $p->{message} = 
-                join($Log::Log4perl::JOIN_MSG_ARRAY_CHAR, 
-                     @{$p->{message}} 
-                     ) if ref $p->{message} eq "ARRAY";
+            if (ref $p->{message} eq "ARRAY") {
+                for my $i (0..$#{$p->{message}}) {
+                    if( !defined $p->{message}->[ $i ] ) {
+                        local $Carp::CarpLevel =
+                        $Carp::CarpLevel + $Log::Log4perl::caller_depth + 1;
+                        carp "Warning: Log message argument #" . 
+                             ($i+1) . " undefined";
+                    }
+                }
+                $p->{message} = 
+                    join($Log::Log4perl::JOIN_MSG_ARRAY_CHAR, 
+                         @{$p->{message}} 
+                         );
+            }
             
             #defined but false, e.g. Appender::DBI
         } elsif (! $self->{warp_message}) {
@@ -686,12 +697,34 @@ an argument will forward the correctly rendered message:
 
 Log::Dispatch
 
-=head1 COPYRIGHT AND LICENSE
+=head1 LICENSE
 
-Copyright 2002-2009 by Mike Schilli E<lt>m@perlmeister.comE<gt> 
+Copyright 2002-2012 by Mike Schilli E<lt>m@perlmeister.comE<gt> 
 and Kevin Goess E<lt>cpan@goess.orgE<gt>.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
 
-=cut
+=head1 AUTHOR
+
+Please contribute patches to the project on Github:
+
+    http://github.com/mschilli/log4perl
+
+Send bug reports or requests for enhancements to the authors via our
+
+MAILING LIST (questions, bug reports, suggestions/patches): 
+log4perl-devel@lists.sourceforge.net
+
+Authors (please contact them via the list above, not directly):
+Mike Schilli <m@perlmeister.com>,
+Kevin Goess <cpan@goess.org>
+
+Contributors (in alphabetical order):
+Ateeq Altaf, Cory Bennett, Jens Berthold, Jeremy Bopp, Hutton
+Davidson, Chris R. Donnelly, Matisse Enzer, Hugh Esco, Anthony
+Foiani, James FitzGibbon, Carl Franks, Dennis Gregorovic, Andy
+Grundman, Paul Harrington, David Hull, Robert Jacobson, Jason Kohles, 
+Jeff Macdonald, Markus Peter, Brett Rann, Peter Rabbitson, Erik
+Selberg, Aaron Straup Cope, Lars Thegler, David Viner, Mac Yang.
+

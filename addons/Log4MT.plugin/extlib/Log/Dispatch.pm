@@ -1,6 +1,6 @@
 package Log::Dispatch;
-BEGIN {
-  $Log::Dispatch::VERSION = '2.29';
+{
+  $Log::Dispatch::VERSION = '2.32';
 }
 
 use 5.006;
@@ -9,18 +9,40 @@ use strict;
 use warnings;
 
 use base qw( Log::Dispatch::Base );
-use Params::Validate qw(validate_with ARRAYREF CODEREF);
+use Class::Load qw( load_class );
+use Params::Validate 0.15 qw(validate_with ARRAYREF CODEREF);
 use Carp ();
 
 our %LEVELS;
 
 BEGIN {
-    foreach my $l (
-        qw( debug info notice warn warning err error crit critical alert emerg emergency )
-        ) {
+    my %level_map = (
+        (
+            map { $_ => $_ }
+                qw(
+                debug
+                info
+                notice
+                warning
+                error
+                critical
+                alert
+                emergency
+                )
+        ),
+        warn  => 'warning',
+        err   => 'error',
+        crit  => 'critical',
+        emerg => 'emergency',
+    );
+
+    foreach my $l ( keys %level_map ) {
         my $sub = sub {
             my $self = shift;
-            $self->log( level => $l, message => "@_" );
+            $self->log(
+                level   => $level_map{$l},
+                message => @_ > 1 ? "@_" : $_[0],
+            );
         };
 
         $LEVELS{$l} = 1;
@@ -87,7 +109,7 @@ sub _add_output {
         ? substr( $class, 1 )
         : "Log::Dispatch::$class";
 
-    _require_dynamic($full_class);
+    load_class($full_class);
 
     $self->add( $full_class->new(@_) );
 }
@@ -238,14 +260,6 @@ sub is_alert     { $_[0]->would_log('alert') }
 sub is_emerg     { $_[0]->would_log('emerg') }
 sub is_emergency { $_[0]->would_log('emergency') }
 
-sub _require_dynamic {
-    my ($class) = @_;
-
-    local $@;
-    eval "require $class";
-    die $@ if $@;
-}
-
 1;
 
 # ABSTRACT: Dispatches messages to one or more outputs
@@ -260,7 +274,7 @@ Log::Dispatch - Dispatches messages to one or more outputs
 
 =head1 VERSION
 
-version 2.29
+version 2.32
 
 =head1 SYNOPSIS
 
@@ -332,7 +346,7 @@ string following '+' is taken to be a full classname. e.g.
                  [ '+My::Dispatch', min_level => 'info' ] ]
 
 For each inner list, a new output object is created and added to the
-dispatcher (via L</add>).
+dispatcher (via the C<add() method>).
 
 See L<OUTPUT CLASSES> for the parameters that can be used when creating an
 output object.
@@ -395,6 +409,9 @@ If you pass an array to these methods, it will be stringified as is:
  # is equivalent to
 
  $log->alert("@array");
+
+You can also pass a subroutine reference, just like passing one to the
+C<log()> method.
 
 =item * log_and_die( level => $, message => $ or \& )
 
@@ -499,11 +516,11 @@ form of generated names, as they may change.
 
 =item * min_level ($)
 
-The minimum L<logging level|Log Levels> this object will accept. Required.
+The minimum L<logging level|LOG LEVELS> this object will accept. Required.
 
 =item * max_level ($)
 
-The maximum L<logging level|Log Levels> this object will accept.  By default
+The maximum L<logging level|LOG LEVELS> this object will accept.  By default
 the maximum is the highest possible level (which means functionally that the
 object has no maximum).
 
@@ -526,7 +543,7 @@ message!
 
 If true, a callback will be added to the end of the callbacks list that adds
 a newline to the end of each message. Default is false, but some
-output classes may decide to make the default true. See L</NEWLINES> for more details.
+output classes may decide to make the default true.
 
 =back
 
@@ -631,7 +648,26 @@ or via email at bug-log-dispatch@rt.cpan.org.
 
 Support questions can be sent to me at my email address, shown below.
 
-The code repository is at http://hg.urth.org/hg/Log-Dispatch.
+=head1 DONATIONS
+
+If you'd like to thank me for the work I've done on this module,
+please consider making a "donation" to me via PayPal. I spend a lot of
+free time creating free software, and would appreciate any support
+you'd care to offer.
+
+Please note that B<I am not suggesting that you must do this> in order
+for me to continue working on this particular software. I will
+continue to do so, inasmuch as I have in the past, for as long as it
+interests me.
+
+Similarly, a donation made in this way will probably not make me work
+on this software much more, unless I get so many donations that I can
+consider working on free software full time, which seems unlikely at
+best.
+
+To donate, log into PayPal and send money to autarch@urth.org or use
+the button on this page:
+L<http://www.urth.org/~autarch/fs-donation.html>
 
 =head1 SEE ALSO
 

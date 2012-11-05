@@ -1,6 +1,6 @@
 package Log::Dispatch::Syslog;
-BEGIN {
-  $Log::Dispatch::Syslog::VERSION = '2.29';
+{
+  $Log::Dispatch::Syslog::VERSION = '2.32';
 }
 
 use strict;
@@ -13,7 +13,7 @@ use base qw( Log::Dispatch::Output );
 use Params::Validate qw(validate ARRAYREF SCALAR);
 Params::Validate::validation_options( allow_extra => 1 );
 
-use Sys::Syslog 0.16 ();
+use Sys::Syslog 0.25 ();
 
 sub new {
     my $proto = shift;
@@ -108,7 +108,7 @@ Log::Dispatch::Syslog - Object for logging to system log.
 
 =head1 VERSION
 
-version 2.29
+version 2.32
 
 =head1 SYNOPSIS
 

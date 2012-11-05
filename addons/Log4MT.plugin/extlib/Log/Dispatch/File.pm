@@ -1,6 +1,6 @@
 package Log::Dispatch::File;
-BEGIN {
-  $Log::Dispatch::File::VERSION = '2.29';
+{
+  $Log::Dispatch::File::VERSION = '2.32';
 }
 
 use strict;
@@ -166,7 +166,7 @@ Log::Dispatch::File - Object for logging to files
 
 =head1 VERSION
 
-version 2.29
+version 2.32
 
 =head1 SYNOPSIS
 
@@ -213,7 +213,7 @@ default is 'write'.
 
 =item * binmode ($)
 
-A layer name to be passed to binmode, like ":utf8" or ":raw".
+A layer name to be passed to binmode, like ":encoding(UTF-8)" or ":raw".
 
 =item * close_after_write ($)
 
