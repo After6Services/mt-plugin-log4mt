@@ -12,6 +12,9 @@ package MT::Log::Log4perl::Appender::MT;
 
 our @ISA = qw(Log::Log4perl::Appender);
 
+use Log::Log4perl;
+Log::Log4perl->wrapper_register(__PACKAGE__);
+
 use strict;
 use warnings;
 use MT;
@@ -49,7 +52,7 @@ sub log {
     my $log_data;
 
     require MT::Log::Log4perl;
-    my $logfile = MT::Log::Log4perl->new('file')
+    my $logfile = MT::Log::Log4perl->new(scalar caller(3))
                 or MT::Log::Log4perl->new('')
                 or die 'ERROR: couldnt get logger';
 

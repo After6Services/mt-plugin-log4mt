@@ -1,12 +1,8 @@
-### MT::Log::Log4Perl
-# AUTHOR:   Jay Allen, Endevver Consulting
-# See README.txt in this package for more details
-# $Id: Log4perl.pm 803 2008-02-14 22:52:06Z jay $
 package MT::Log::Log4perl;
 use strict; use warnings; use Data::Dumper;
 no warnings 'redefine';
 
-our $VERSION = "1.7"; # $Revision: 803 $
+use version 0.77; our $VERSION = qv('v1.7.5');
 
 use strict;
 use base 'Exporter';

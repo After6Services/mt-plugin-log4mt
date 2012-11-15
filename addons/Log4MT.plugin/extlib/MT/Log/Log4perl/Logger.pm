@@ -7,6 +7,7 @@ use Log::Log4perl qw(:levels :resurrect );
 use MT::Log::Log4perl::Util qw( err emergency_log trace );
 
 Log::Log4perl->wrapper_register(__PACKAGE__);
+# Log::Log4perl->wrapper_register( 'Carp' );
 
 use vars qw($trace_wrapper $logger_methods_installed);
 
@@ -25,9 +26,11 @@ sub init_logger {
     err(sprintf "init_logger being called from %s "
         ."with category %s\n", (caller(1))[3], ($cat||'NULL'));
     eval {
-        # $Log::Log4perl::caller_depth++;
-        $self->{logger} = Log::Log4perl::get_logger($cat) or die;
-        # $Log::Log4perl::caller_depth--;
+        {
+            local $Log::Log4perl::caller_depth =
+                  $Log::Log4perl::caller_depth + 2;
+            $self->{logger} = Log::Log4perl::get_logger($cat) or die;
+        }
         $self->{logger} or die;
     };
     if ($@) {
@@ -61,10 +64,10 @@ sub init_handlers {
     my $prevwarn = ref($SIG{__WARN__}) ? $SIG{__WARN__} : sub { };
     $SIG{__WARN__} = sub {
         $prevwarn->(@_);
-        # $Log::Log4perl::caller_depth++;
-        my $l = Log::Log4perl->get_logger("");
+        # local $Log::Log4perl::caller_depth
+        #     = $Log::Log4perl::caller_depth - 1;
+        my $l = Log::Log4perl->get_logger('');
         $l->warn(@_);
-        # $Log::Log4perl::caller_depth--;
     };
 
     # my $prevdie = ref($SIG{__DIE__}) ? $SIG{__DIE__} : sub { };
