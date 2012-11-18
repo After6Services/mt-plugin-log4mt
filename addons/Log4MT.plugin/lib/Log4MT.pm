@@ -5,10 +5,6 @@ use warnings;
 use Data::Dumper;
 use Carp qw( croak confess longmess );
 
-
-# Check out https://metacpan.org/source/SARTAK/Jifty-1.10518/lib/Jifty/Logger.pm
-# and https://metacpan.org/source/SARTAK/Jifty-1.10518/lib/Jifty/Logger/EventAppender.pm
-
 BEGIN {
     unshift( @INC, "$ENV{MT_HOME}/addons/Log4MT.plugin/lib" );
 }

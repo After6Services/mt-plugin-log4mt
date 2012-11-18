@@ -1,7 +1,3 @@
-### MT::Log::Log4Perl::Appender::MT
-# AUTHOR:   Jay Allen, Endevver Consulting
-# See README.txt in this package for more details
-# $Id: MT.pm 803 2008-02-14 22:52:06Z jay $
 package MT::Log;
 
 use constant FATAL => 256;
