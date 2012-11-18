@@ -63,9 +63,9 @@ sub init_handlers {
     # Install WARN and DIE signal handlers
     my $prevwarn = ref($SIG{__WARN__}) ? $SIG{__WARN__} : sub { };
     $SIG{__WARN__} = sub {
-        $prevwarn->(@_);
-        # local $Log::Log4perl::caller_depth
-        #     = $Log::Log4perl::caller_depth - 1;
+        local $Log::Log4perl::caller_depth
+            = $Log::Log4perl::caller_depth + 1;
+        # $prevwarn->(@_);
         my $l = Log::Log4perl->get_logger('');
         $l->warn(@_);
     };
