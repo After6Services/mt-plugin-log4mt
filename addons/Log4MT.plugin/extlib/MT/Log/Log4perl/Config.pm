@@ -57,13 +57,27 @@ sub init {
     err("\$config_response = $config_response");
 
     return $config_response ? $self : undef;
+}
 
-    # # return $self if $self->initialized;
-    # # First look for a config_file argument, then a config
-    # if (   $self->config_file($args->{config_file})
-    #     or $self->config_data($args->{config})) {
-    #     $self->initialized(1);
-    # }
+sub basic_config {
+    my $config = q(
+log4perl.logger         = TRACE, Errorlog, MTLog
+layout_class            = Log::Log4perl::Layout::PatternLayout::Multiline
+layout_stderr           = %p> %m (in %M() %F, line %L)%n
+layout_pattern_dated    = %d %p> %c %M{1} (%L) | %m%n
+layout_pattern_minimal  = %m%n
+layout_pattern_trace    = %d %p> #########################   "%c %M{1} (%L)"   #########################%n%d %p> %m  [[ Caller: %l ]]%n
+log4perl.appender.MTLog                             = MT::Log::Log4perl::Appender::MT
+log4perl.appender.MTLog.warp_message                = 0
+log4perl.appender.MTLog.layout                      = Log::Log4perl::Layout::NoopLayout
+log4perl.appender.MTLog.Threshold                   = ERROR
+log4perl.appender.Errorlog                          = Log::Log4perl::Appender::Screen
+log4perl.appender.Errorlog.stderr                   = 1,
+log4perl.appender.Errorlog.layout                   = ${layout_class}
+log4perl.appender.Errorlog.layout.ConversionPattern = ${layout_stderr}
+log4perl.appender.Errorlog.Threshold                = WARN
+);
+    return \$config;
 }
 
 sub config_file {
@@ -166,80 +180,91 @@ sub _can_read   {
 
 __END__
 
-# sub _config {
-#     return unless $HAS_L4P;
-#     my $self = shift;
-#     my $args = shift || {};
-# 
-#     my $config;
-#     if (my $cfg_data = $args->{config}) {
-#         $cfg_data = \$cfg_data
-#             unless ((ref($cfg_data) || '') =~ m!(SCALAR|HASH)!);
-#         $config = $cfg_data;
-#         if ($config) { VERBOSE and err "CONFIG CODE GIVEN"; }
-#     }
-#     elsif ( ($args->{config_file}||'') =~ m!^/! ) {
-#         $config = $args->{config_file} if can_read_file($args->{config_file});
-#         if ($config) { VERBOSE and err "VALID CONFIG FILE GIVEN\n" }
-#     }
-# 
-#     if (!$config) {
-#         my $cfg_dir = $self->_get_config_dir() || '';
-#         VERBOSE and err "CFG_DIR: $cfg_dir";
-#         require File::Spec;
-#         VERBOSE and err "Looking at files:";
-#         foreach (($args->{config_file} || ''), 'log4perl.conf') {
-#             VERBOSE and err "\n\t* $_ ";
-#             my $test = File::Spec->catfile($cfg_dir, $_);
-#             VERBOSE and err "\n\t\t * Coverted to $test";
-#             next unless $_ and _can_read_file($test);
-#             VERBOSE and err "\n\t * THIS IS OUR FILE!";
-#             $config = $test;
-#             last;
-#         }
-#         if ($config) {
-#             VERBOSE and err "\nFound config file and loaded: $config";
-#         }
-#     }
-#     return $config;
-# }
 
 
 
 
-# my $cfg_ok;
-# my $errmsg = 'Error initializing Log::Log4perl using %s: %s';
-# 
-# if ($config) {
-#     my $msg = 'Config exists, loading...';
-#     if ( ref($config) ) {
-#         VERBOSE and err $msg, " with init()";
-#         $cfg_ok = eval { Log::Log4perl::Config->init($config); 1 };
-#         if (! $cfg_ok or $@) {
-#             $cfg_ok = 0;
-#             emergency_log($errmsg, 'init()', $@); }
-#     } else {
-#         VERBOSE and err $msg, " with init_and_watch()";
-#         $cfg_ok = eval {Log::Log4perl::Config->init_and_watch($config);1};
-#         if (! $cfg_ok or $@) {
-#             $cfg_ok = 0;
-#             emergency_log($errmsg, 'init_and_watch()', $@);
-#         }
-#     }
-# }
-# 
-# if (! ($config && $cfg_ok)) {
-#     if (defined $config and defined $cfg_ok) {
-#         print STDERR 'Attempting to initialize Log::Log4perl '
-#                     ."with basic config.\n";
-#     }
-#     # my $msg = 'No config file... Using the default config';
-#     # err($msg, Dumper(basic_config()));
-#     $cfg_ok = eval { Log::Log4perl::Config->init(basic_config()) };
-#     if (! $cfg_ok or $@) {
-#         return emergency_log($errmsg, 'init_and_watch()', $@);
-#     }
-#     if (defined $config and defined $cfg_ok) {
-#         print STDERR "Running Log::Log4perl with basic config.\n";
-#     }
-# }
+Log::Log4perl->init(\ <<'EOT');
+
+# Log4MT configuration file
+# AUTHOR:   Jay Allen, Endevver Consulting
+# See README.txt in this package for more details
+# $Id$
+#
+# QUICKSTART: Simply specify a path to your preferred location for the Log4MT
+#             log file (see log_file below).  This file will be used exclusively
+#             for output using the default settings.
+
+####################
+#   ROOT LOGGER    #
+####################
+# The following sets the root logger's level to TRACE (the lowest/noisest level)
+# and attaches appenders for output to the log file, the standard error log and
+# the activity log.
+log4perl.logger                         = TRACE, Marker, File, Errorlog, MTLog
+
+######################
+#   LOG FILE PATH    #
+######################
+# The setting below defines the absolute path to your desired location for the
+# Log4MT log file.  This file should exist and have permissions that allow MT
+# to write to it.  If in doubt, use 777 (or "rwxrwxrwx").
+log_file                                = /PATH/TO/log4mt.log
+
+######################
+# LAYOUT DEFINITIONS #
+######################
+layout_class            = Log::Log4perl::Layout::PatternLayout::Multiline
+layout_stderr           = %p> %m (in %M() %F, line %L)%n
+layout_pattern_dated    = %d %p> %c %M{1} (%L) | %m%n
+layout_pattern_minimal  = %m%n
+layout_pattern_trace    = %d %p> #########################   "%c %M{1} (%L)"   #########################%n%d %p> %m  [[ Caller: %l ]]%n
+
+#######################
+### Marker appender ###
+#######################
+log4perl.filter.TraceOnly                           = Log::Log4perl::Filter::LevelMatch
+log4perl.filter.TraceOnly.LevelToMatch              = TRACE
+log4perl.filter.TraceOnly.AcceptOnMatch             = true
+log4perl.appender.Marker                            = Log::Log4perl::Appender::File
+log4perl.appender.Marker.filename                   = ${log_file}
+log4perl.appender.Marker.mode                       = append
+log4perl.appender.Marker.umask                      = 0000
+log4perl.appender.Marker.recreate                   = 1
+log4perl.appender.Marker.layout                     = ${layout_class}
+log4perl.appender.Marker.layout.ConversionPattern   = ${layout_pattern_trace}
+log4perl.appender.Marker.Filter                     = TraceOnly
+
+#####################
+### File appender ###
+#####################
+log4perl.appender.File                              = Log::Log4perl::Appender::File
+log4perl.appender.File.filename                     = ${log_file}
+log4perl.appender.File.mode                         = append
+log4perl.appender.File.umask                        = 0000
+log4perl.appender.File.recreate                     = 1
+log4perl.appender.File.layout                       = ${layout_class}
+log4perl.appender.File.layout.ConversionPattern     = ${layout_pattern_dated}
+log4perl.appender.File.Threshold                    = DEBUG
+
+######################
+### MTLog appender ###
+######################
+log4perl.appender.MTLog                             = MT::Log::Log4perl::Appender::MT
+log4perl.appender.MTLog.warp_message                = 0
+log4perl.appender.MTLog.layout                      = Log::Log4perl::Layout::NoopLayout
+log4perl.appender.MTLog.Threshold                   = ERROR
+
+#######################
+### Stderr appender ###
+#######################
+log4perl.appender.Errorlog                          = Log::Log4perl::Appender::Screen
+log4perl.appender.Errorlog.stderr                   = 1,
+log4perl.appender.Errorlog.layout                   = ${layout_class}
+log4perl.appender.Errorlog.layout.ConversionPattern = ${layout_stderr}
+log4perl.appender.Errorlog.Threshold                = WARN
+
+EOT
+
+
+

@@ -6,140 +6,113 @@ use Data::Dumper;
 use Carp qw( croak confess longmess );
 
 BEGIN {
-    unshift( @INC, "$ENV{MT_HOME}/addons/Log4MT.plugin/lib" );
+    unshift( @INC,
+        join('/', ($ENV{MT_HOME} // '.'), 'addons/Log4MT.plugin/lib' )
+    )
 }
 
+our ( $l4p, $mtlog );
+
+use Log::Log4perl::Logger qw( resurrect );
 use MT::Log::Log4perl qw(l4mtdump);
-our $logger = MT::Log::Log4perl->new();
 
-
-my $log_class = MT->model('log') || 'MT::Log';
-$logger->debug( "Installing get_logger into $log_class from " . __PACKAGE__ );
-require Sub::Install;
-Sub::Install::reinstall_sub( {
-                               from => 'MT::Log::Log4perl',
-                               code => 'new',
-                               into => $log_class,
-                               as   => 'get_logger',
-                             }
-);
-
-sub init {
-    $logger->trace();
-    my $log_class = MT->model('log') || 'MT::Log';
-    $logger->debug(   "Installing get_logger into $log_class from "
-                    . __PACKAGE__
-                    . ' init()' );
-    require Sub::Install;
-    Sub::Install::reinstall_sub( {
-                                   from => 'MT::Log::Log4perl',
-                                   code => 'new',
-                                   into => $log_class,
-                                   as   => 'get_logger',
-                                 }
-    );
-}
+sub init {}
 
 sub post_init {
-    $logger->trace();
-    $logger->debug(   "Installing get_logger into $log_class from "
-                    . __PACKAGE__
-                    . ' post_init()' );
+    my $cb  = shift;
+    my $app = shift;
+    ###l4p $l4p ||= MT::Log::Log4perl->new(); $l4p->trace();
+    MT::Log::Log4perl->reinitialize( $app );
 }
 
 sub init_request {
     my $plugin = shift;
     my $app    = shift;
     my $q      = eval { $app->query } || $app->param;
-    $logger->debug(   "Installing get_logger into $log_class from "
-                    . __PACKAGE__
-                    . ' init_request()' );
+    ###l4p $l4p ||= get_logger(); $l4p->trace();
 
-    if (    $q->param('old_pass')
-         or $q->param('hint')
-         or $q->param('username') && $q->param('password') )
-    {
-        $logger->info(
-                     'App query: NOT LOGGED DUE TO LOGIN CREDENTIALS, Mode: ',
-                     ( $app->mode ? $app->mode : 'None' ) );
+    unless (   $q->param('password') 
+            && grep { $q->param($_) } qw( username old_pass hint ) ) {
+
+        ###l4p $l4p->info( 'App query: ', l4mtdump( $q );
+        return;
     }
-    else {
-        $logger->info( 'App query: ',
-                       l4mtdump( eval { $app->query } || $app->{query} ) );
-    }
-} ## end sub init_request
+    ###l4p $l4p->info( 'App query for mode ', ($app->mode||''),
+    ###l4p              'NOT LOGGED DUE TO LOGIN CREDENTIALS'   );
+}
+
 
 sub show_template_params {
-    my ( $cb, $app, $param, $tmpl ) = @_;
-    $logger ||= MT::Log::Log4perl->new();
-    unless ( $app->request('Log4MT_template_params_output') ) {
-        $logger->debug('Initial outgoing template parameters:');
-        $logger->debug( sprintf "     %-30s %s",
-                        $_ || '', $param->{$_} || '' )
-          foreach sort keys %$param;
-        $app->request( 'Log4MT_template_params_output', 1 );
-    }
-    $logger->debug( sprintf 'Loading app template "%s"',
-               $param->{template_filename} || '[template_filename is NULL]' );
+    ###l4p my ( $cb, $app, $param, $tmpl ) = @_;
+    ###l4p $l4p ||= get_logger(); $l4p->trace();
+    ###l4p 
+    ###l4p my @msgs = ( 'Initial outgoing template parameters: ' );
+    ###l4p 
+    ###l4p unless ( $app->request('Log4MT_template_params_output') ) {
+    ###l4p     push( @msgs,
+    ###l4p         map {
+    ###l4p             sprintf( "\t%-30s %s", ($_//''), ($param->{$_}//'')) 
+    ###l4p         } sort keys %$param
+    ###l4p     );
+    ###l4p     $app->request( 'Log4MT_template_params_output', 1 );
+    ###l4p }
+    ###l4p 
+    ###l4p my $f = 'template_filename';
+    ###l4p push( @msgs, "Loading app template ".($param->{$f} // "[$f is NULL]" ));
+    ###l4p 
+    ###l4p $l4p->debug($_) foreach @msg;
 }
-
-our ($mtlog);
 
 sub get_logger {
-    my $cat = shift;
+    local $Log::Log4perl::caller_depth
+        = $Log::Log4perl::caller_depth + 1;
     require MT::Log::Log4perl;
-    import MT::Log::Log4perl qw( l4mtdump );
-    return MT::Log::Log4perl->new($cat);
+    return MT::Log::Log4perl->new( shift || scalar caller );
 }
-
 
 sub hdlr_logger {
     my ( $ctx, $args ) = @_;
-    my $logger = get_logger();
-    $logger->trace();
+    my $tag            = $ctx->stash('tag');
+    ###l4p $l4p ||= get_logger(); $l4p->trace();
 
-    my $tag = $ctx->stash('tag');
+    # Get logger message from attribute or content of block and trim
+    my @msgs = map { s/(^\s+|\s+$)//g; $_ } (
+        $tag eq 'Logger' ? $args->{message} : __block_text( @_ )
+    );
 
-    # Get logger from category or logger attribute or use default logger
-    my $category = join( '.',
-                         'MTLogger', 'Template',
-                         ( $args->{logger} || $args->{category} || undef ) );
+    # Get logger from category, logger attribute or use default logger
+    my $category
+        = join( '.', 'MTLogger.Template',
+                     ( $args->{logger} // $args->{category} // () ));
+
     my $tmpl_logger = get_logger($category);
+    my $level       = $tmpl_logger->level( uc( $args->{level} || 'INFO' ) );
+    $tmpl_logger->log( $level, $_ ) foreach @msgs;
+    return '';
+}
 
-    # Get logger level from level attribute and set.  INFO is default
-    my $level = $tmpl_logger->level( uc( $args->{level} || 'INFO' ) );
 
-    # $tmpl_logger->level($level);
+sub __block_text {
+    my ($ctx, $args) = @_;
+    my $str      = $ctx->stash('uncompiled');
+    my $compile  = $args->{compile};
+    $compile   //= defined $args->{uncompiled} ? ! $args->{uncompiled} : 1;
 
-    # Get logger message from attribute or content of block
-    my @msgs = ();
-    if ( $tag eq 'Logger' ) {
-        push( @msgs, $args->{message} );
-    }
-    else {
-        my $compile
-          = ( defined $args->{compile} ) ? $args->{compile}
-          : ( defined $args->{uncompiled} ) ? !$args->{uncompiled}
-          :                                   1;
-        my $str = $ctx->stash('uncompiled');
-        if ($compile) {
-
-            # Process enclosed block of template code
-            my $tokens = MT::Template::Context::_hdlr_pass_tokens(@_);
-            if ( defined $tokens ) {
-                if ( my $ph = $ctx->post_process_handler ) {
-                    my $content = $ph->( $ctx, $args, $tokens );
-                    $str = $content;
-                }
+    my @msgs;
+    if ($compile) {
+        # Process enclosed block of template code
+        my $tokens = MT::Template::Context::_hdlr_pass_tokens(@_);
+        if (defined $tokens) {
+            if ( my $ph = $ctx->post_process_handler ) {
+                my $content = $ph->( $ctx, $args, $tokens );
+                $str = $content;
             }
         }
         $str =~ s/(^\s+|\s+$)//g;
-        push( @msgs, split( /\n/, $str || '' ) );
+        push( @msgs, split( /\n/, $str//'' ) );
     } ## end else [ if ( $tag eq 'Logger' )]
-    @msgs = map { s/(^\s+|\s+$)//g; $_ } @msgs;
 
-    $tmpl_logger->log( $level, $_ ) foreach @msgs;
-    return '';
-} ## end sub hdlr_logger
+    return @msgs;
+}
 
 1;
