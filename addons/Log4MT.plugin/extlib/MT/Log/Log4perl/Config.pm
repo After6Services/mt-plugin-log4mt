@@ -4,8 +4,8 @@ use 5.010_001;
 use strict;
 use warnings;
 use Data::Dumper;
+use MT::Log::Log4perl::Util qw( err emergency_log );
 
-use MT::Log::Log4perl::Util qw( err emergency_log trace );
 
 our $INITIALIZED;
 sub initialized {
@@ -14,7 +14,6 @@ sub initialized {
 
 sub new {
     my $class = shift;
-    trace();
     my $self = bless {}, $class;
     $self->init(@_);
     $self;
@@ -22,16 +21,7 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    trace();
     my ($config, $config_response, $class, @eval_msgs);
-
-    # use MT::Request;
-    # my $r = MT::Request->instance;
-    # $r->cache('foo', $foo);
-    # 
-    # ## Later and elsewhere...
-    # my $foo = $r->cache('foo');
-
 
     # TODO  Finish other configurators and reorder the choices.
     #       The order below is not ideal but had to be done to
@@ -83,7 +73,6 @@ log4perl.appender.Errorlog.Threshold                = WARN
 
 sub config_file {
     my ($self, $file) = @_;
-    trace();
 
     # Return previously defined config file if the caller is asking for it
     return $self->{_config_file} if ! defined $file or $file eq '';
@@ -117,7 +106,6 @@ sub config_file {
 sub config_data {
     my $self = shift;
     my $data = (@_ > 1) ? { @_ } : shift;
-    trace();
 
     if (! defined $data) {
         # Return previously defined config file if

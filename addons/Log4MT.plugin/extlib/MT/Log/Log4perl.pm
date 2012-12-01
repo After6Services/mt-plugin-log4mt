@@ -6,10 +6,6 @@ use warnings;
 no warnings 'redefine';
 use Log::Log4perl ();
 use MT::Log::Log4perl::BaseLogger;
-use MT::Log::Log4perl::Util qw( err trace emergency_log );
-use Data::Dumper;
-use DDP;
-
 use base 'Exporter';
 our @EXPORT = qw( l4mtdump );
 
@@ -27,7 +23,6 @@ sub new {
     my $pkg    = shift;
     my $args   = shift;
     my $caller = caller;
-
     unless ( $args && 'HASH' eq ref $args ) {
         $args = {
             category => ( $args || $caller ),
@@ -84,9 +79,7 @@ sub init_mt_log {
     my $log_class = 'MT::Log';
     eval "require $log_class; 1;";
     $@ and die $@;
-
     return if $log_class->can('get_logger');
-
     require Sub::Install;
     Sub::Install::reinstall_sub({
         from => 'MT::Log::Log4perl',
