@@ -1,5 +1,6 @@
 package Log4MT;
 
+use 5.010_001;
 use strict;
 use warnings;
 use Data::Dumper;

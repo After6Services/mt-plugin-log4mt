@@ -1,8 +1,9 @@
-# $Id: Config.pm 804 2008-02-14 22:56:05Z jay $
-
 package MT::Log::Log4perl::Config;
 
-use strict; use warnings; use Data::Dumper;
+use 5.010_001;
+use strict;
+use warnings;
+use Data::Dumper;
 
 use MT::Log::Log4perl::Util qw( err emergency_log trace );
 

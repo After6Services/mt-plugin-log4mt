@@ -1,5 +1,9 @@
 package MT::Log::Log4perl::Logger;
-use strict; use warnings; use Data::Dumper;
+
+use 5.010_001;
+use strict;
+use warnings;
+use Data::Dumper;
 
 use parent qw(MT::Log::Log4perl::BaseLogger);
 
