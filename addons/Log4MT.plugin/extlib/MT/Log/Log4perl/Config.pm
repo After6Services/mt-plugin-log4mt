@@ -6,8 +6,8 @@ use warnings;
 use Data::Dumper;
 use MT::Log::Log4perl::Util qw( err emergency_log );
 
+our $INITIALIZED = 0;
 
-our $INITIALIZED;
 sub initialized {
     $_[0]->{initialized} = $INITIALIZED = $_[1];
 }
@@ -23,31 +23,32 @@ sub init {
     my ($self, $args) = @_;
     my ($config, $config_response, $class, @eval_msgs);
 
-    # TODO  Finish other configurators and reorder the choices.
-    #       The order below is not ideal but had to be done to
-    #       solve a boostrapping problem where Log4perl either could
-    #       not be used until MT was fully initialized
-    foreach my $type (qw(file basic mtconfig webui)) {
-        eval {
-            $config = '';
-            $class = join("::", 'MT::Log::Log4perl::Config', $type);
-            push @eval_msgs, "Trying $class configuration";
-            eval "require $class;";
-            if ($config = $class->load($args)) {
-                push @eval_msgs, "CONFIG: $config";
-                require Log::Log4perl::Config;
-                Log::Log4perl::Config->init($config)
-                    or die "Configuration rejected by Log::Log4perl";
-            }
-        };
-        err($_) foreach @eval_msgs;
-        if ($@) { warn "Warning: $@" and next; } else { $config_response++ }                
-        last if $config_response;
-    }
-    err("Config class being used: $class") if $config_response;
-    err("\$config_response = $config_response");
+    my $default_conf
+        = File::Spec->catfile( ($ENV{MT_HOME} || '.'), 'log4mt.conf' );
 
-    return $config_response ? $self : undef;
+    return $self if -e -r $default_conf
+                and $self->try_config( $default_conf );
+
+    return $self if $self->try_config( $self->basic_config );
+
+    die "Failed to initialize Log4perl";
+}
+
+sub try_config {
+    my $self   = shift;
+    my $config = shift;
+    local $@ = undef;
+    eval {
+        require Log::Log4perl::Config;
+        Log::Log4perl::Config->init($config)
+            or die "Configuration rejected by Log::Log4perl";
+        1;
+    };
+    if ($@) {
+        warn $@;
+        return 0;
+    }
+    1;
 }
 
 sub basic_config {
@@ -154,7 +155,7 @@ sub mt_cfg_dir {
 
 sub can_read_file { _can_read('f', @_) }
 sub can_read_dir  { _can_read('d', @_) }
-sub _can_read   { 
+sub _can_read   {
     shift if ref($_[0]);
     my ($type, $item) = @_;
     return unless defined $item and defined $type;
