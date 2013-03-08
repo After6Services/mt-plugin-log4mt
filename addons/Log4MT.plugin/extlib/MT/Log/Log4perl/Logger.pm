@@ -51,7 +51,7 @@ sub init_handlers {
     no warnings qw(redefine);
     require Log::Log4perl::Logger;
     $trace_wrapper = \&Log::Log4perl::Logger::trace;
-    *Log::Log4perl::Logger::trace = 
+    *Log::Log4perl::Logger::trace =
         sub {
             my $self = shift;
             my @messages = @_;
@@ -60,7 +60,7 @@ sub init_handlers {
             $trace_wrapper->($self, @messages);
             # $Log::Log4perl::caller_depth -= 1;
         };
-    
+
     # Install WARN and DIE signal handlers
     my $prevwarn = ref($SIG{__WARN__}) ? $SIG{__WARN__} : sub { };
     $SIG{__WARN__} = sub {

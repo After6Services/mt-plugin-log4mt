@@ -30,7 +30,7 @@ sub append_logfile {
     'log4perl.appender.A1.filename' => 'test.log',
     'log4perl.appender.A1.mode'     => 'append',
     'log4perl.appender.A1.layout'   => 'Log::Log4perl::Layout::PatternLayout',
-    'log4perl.appender.A1.layout.ConversionPattern' => '%d %m %n'    
+    'log4perl.appender.A1.layout.ConversionPattern' => '%d %m %n'
 }
 
 1;

@@ -178,7 +178,7 @@ is_deeply( $app->buffer,   ['Test 1','Test 2','Test 3'], '$app->buffer has three
 my $cnt;
 warning_like(
     sub {
-        is( 
+        is(
             $cnt = $app->flush(), 3, 'Flushed!'
         )
     },
@@ -189,7 +189,7 @@ is_deeply( $app->buffer, ['Test 1','Test 2','Test 3'], '$app->buffer is still fu
 
 warning_like(
     sub {
-        is( 
+        is(
             $app->check_level('FATAL'), undef, 'Check level FATAL = undef'
         )
     },

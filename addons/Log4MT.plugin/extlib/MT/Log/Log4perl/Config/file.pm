@@ -27,10 +27,10 @@ sub load {
                                         DEFAULT_CONFIG_FILE );
     my $config_source;
 
-    FILETEST: {        
+    FILETEST: {
         # Pull config_source from mt-config.cgi the first time around
-        $config_source ||= MT->config('log4mtconfig') if MT->can('config');                                            
-            
+        $config_source ||= MT->config('log4mtconfig') if MT->can('config');
+
         # Fill default if none specified.
         $config_source ||= $default;
 
@@ -50,7 +50,7 @@ sub load {
     return $config_source if -e $config_source;
 
     warn "Could not locate log4mt configuration file: $config_source";
-    return undef;        
+    return undef;
 }
 =cut
 1;

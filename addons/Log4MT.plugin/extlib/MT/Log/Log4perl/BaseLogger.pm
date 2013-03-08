@@ -11,9 +11,9 @@ use MT::Log::Log4perl::Util qw( err emergency_log  );
 
 Log::Log4perl->wrapper_register(__PACKAGE__);
 
-our @levels = qw[ trace debug info warn error fatal ];    
+our @levels = qw[ trace debug info warn error fatal ];
 
-our @methods = qw(error_die   logcroak      get_level     
+our @methods = qw(error_die   logcroak      get_level
                   error_warn  logcluck      dec_level
                   logcarp     logconfess    inc_level
                   logdie      add_appender  less_logging
@@ -25,7 +25,7 @@ sub new {
     my $pkg   = shift;
     my $args  = shift;
     my $logger_class = __PACKAGE__;     # Default
-    
+
     if (    Log::Log4perl->initialized
         and $pkg ne 'MT::Log::Log4perl::Logger' ) {
 
@@ -57,9 +57,9 @@ sub init {
                  *{$name} = sub {  &{"Carp::".substr($name, 3)}(@_) };
             }
             else {
-                *{$name} = sub { };        
+                *{$name} = sub { };
             }
-        }        
+        }
     }
 
     $self;
@@ -69,7 +69,7 @@ sub level_variants {
     my @variants;
     foreach my $base (@_) {
         # foreach my $case ($base, uc($base)) {
-            foreach my $getset ($base, "is_$base") {            
+            foreach my $getset ($base, "is_$base") {
                 push(@variants, $getset)
             }
         # }

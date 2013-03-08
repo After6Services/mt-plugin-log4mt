@@ -55,7 +55,7 @@ sub err {
 
     printf STDERR
         $was_trace ? ("  * %s\n", join(' ',@_))
-                   : ("  * %-30s %-10s %s\n", $pkg,$fn,join(' ',@_)); 
+                   : ("  * %-30s %-10s %s\n", $pkg,$fn,join(' ',@_));
 }
 
 my $banner = '---------------------';
@@ -83,7 +83,7 @@ sub emergency_log {
 
 # Usage:
 #  $logger->debug('VAR: ', l4mtdump(\reference));
-sub l4mtdump { 
+sub l4mtdump {
     my $filter = \&Data::Dumper::Dumper;
     my $ref;
     if (@_ > 1) {
