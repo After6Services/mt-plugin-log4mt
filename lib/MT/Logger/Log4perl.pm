@@ -8,6 +8,7 @@ use Carp::Always;
 use parent qw( Log::Log4perl );
 use Data::Printer output => 'STDOUT', colored => 1;
 
+use Log::Log4perl ();
 Log::Log4perl->wrapper_register( __PACKAGE__ );
 
 
@@ -28,6 +29,19 @@ sub _init_proxy {
     p(@_);
     my $method = shift;
     # objectify self
+    
+    # get_logger() can be called in the following ways:
+    #
+    #   (1) Log::Log4perl::get_logger()     => ()
+    #   (2) Log::Log4perl->get_logger()     => ("Log::Log4perl")
+    #   (3) Log::Log4perl::get_logger($cat) => ($cat)
+    #   
+    #   (5) Log::Log4perl->get_logger($cat) => ("Log::Log4perl", $cat)
+    #   (6)   L4pSubclass->get_logger($cat) => ("L4pSubclass", $cat)
+    #
+    # Note that (4) L4pSubclass->get_logger() => ("L4pSubclass")
+    # is indistinguishable from (3) and therefore can't be allowed.
+    # Wrapper classes always have to specify the category explicitely.
     
     # create config object
     # config sanity check
