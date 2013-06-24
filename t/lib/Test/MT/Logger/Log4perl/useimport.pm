@@ -4,11 +4,14 @@ package Test::MT::Logger::Log4perl::useimport;
 use 5.010;
 use strict;
 use warnings FATAL => 'all';
+
+use Import::Into;
+
 use Test::More;
 use Test::Fatal;
 use Package::Stash;
 use DDP;
-use Carp::Always;
+# use Carp::Always;
 
 use MT::Logger::Log4perl  ();
 use Log::Log4perl::Logger ();
@@ -26,10 +29,13 @@ our @export_tests = qw(
 );
 
 sub import {
-    feature->( 5.010 );
-    strict->import();
-    warnings->import( FATAL => 'all' );
-    Test::More->import;
+    my $self     = shift;
+    my $importer = caller;
+    strict->import::into        ( $importer );
+    warnings->import::into      ( $importer, FATAL => 'all' );
+    feature->import::into       ( $importer, qw( :5.10 ) );
+    Test::More->import::into    ( $importer );
+    Test::Fatal->import::into   ( $importer );
 }
 
 sub no_use_exception { is(   $_[1], undef, 'No exception on use'      ) }
@@ -41,12 +47,10 @@ sub has (@) {
     my @tests     = @_;
     my %tests_run = map { $_ => 0 } @export_tests;
 
-    note "Testing that $self->has: \n\t =>".join(', ',@tests);
-
     foreach my $e ( @tests ) {
         my $test = "test_$e";
-        ok( $self->$test, "$test" )
-            || return fail( "bailing out of has after $test" );
+        ok( $self->$test, "has $test" );
+            # || fail( "bailing out of has after $test" );
         $tests_run{$e} = 1;
     }
     return $self->hasnt( grep { ! $tests_run{$_} } keys %tests_run );
@@ -57,11 +61,9 @@ sub hasnt (@) {
     my $self  = shift;
     my @tests = @_;
 
-    note "Testing that $self->hasnt:\n\t=> ".join(', ',@tests);
-
     foreach my $test ( map { "test_$_" } @tests ) {
         my $res = $self->$test();
-        unless ( ok( ! $res, "$test" ) ) {
+        unless ( ok( ! $res, "hasnt $test" ) ) {
             warn "$test failed. Bailing out of hasnt loop";
             return 0;
         }
@@ -83,7 +85,7 @@ sub test_levels {
     my $pkg = shift;
     my $cnt = 0;
     foreach my $level ( keys %Log::Log4perl::Level::PRIORITY ) {
-        my $ok = $pkg->package_has( '$'.$level, 
+        my $ok = $pkg->package_has( '$'.$level,
                         $Log::Log4perl::Level::PRIORITY{$level});
         $cnt++ if $ok;
     }
@@ -115,13 +117,19 @@ sub test_easycarpers {
 }
 
 sub test_nowarn         {
-    $Log::Log4perl::Logger::NON_INIT_WARNED         || 0 == 1   }
+    require Log::Log4perl::Logger;
+    ($Log::Log4perl::Logger::NON_INIT_WARNED || 0) == 1
+}
 
 sub test_nostrict       {
-    $Log::Log4perl::Logger::NO_STRICT               || 0 == 1   }
+    require Log::Log4perl::Logger;
+    ($Log::Log4perl::Logger::NO_STRICT || 0)       == 1
+}
 
 sub test_no_extra_logdie_message {
-    not ( $Log::Log4perl::LOGDIE_MESSAGE_ON_STDERR  || 0 == 0 ) }
+    require Log::Log4perl;
+    $Log::Log4perl::LOGDIE_MESSAGE_ON_STDERR       == 0
+}
 
 sub test_resurrect      { return shift->is_resurrected }
 
