@@ -1,0 +1,58 @@
+# -w, -v and --state should be specified on the command line if desired
+
+# Merge test scripts' STDERR with their STDOUT.
+--merge
+
+# Print elapsed time after each test.
+--timer
+
+# Normalize TAP output in verbose output
+--normalize
+
+# Colored test output (default).
+--color
+
+# Show full list of TAP parse errors, if any.
+--parse
+
+# Show failed tests.
+--failures
+
+# Recursively descend into directories.
+--recurse
+
+# Add 'lib' to the path for your tests (-Ilib).
+--lib
+
+# Typical lib setup for MT. Specify others on the command line using PERL5LIB
+-I t/lib
+# -I extlib
+# -I addons/ConfigAssistant.pack/lib
+# -I addons/ConfigAssistant.pack/extlib
+# -I addons/Log4MT.plugin/extlib
+# -I addons/Log4MT.plugin/lib
+# -I addons/Melody-compat.pack/extlib
+# -I addons/Melody-compat.pack/lib
+# -I addons/Melody-compat.pack/t/lib
+
+# Control prove's persistent state.
+# --state=all,save
+
+# Ignore exit status from test scripts.
+# --ignore-exit       # Ignore exit status from test scripts.
+
+# Run N test jobs in parallel (try 9.)
+# DOES NOT CURRENTLY WORK WITH Test::MT!!!!
+# --jobs 9
+
+#### Other development tools to specify here or on command line
+# -MDevel::TraceINC
+# -MDevel::TraceLoad=summary
+# -MCarp::Always 
+# -MCarp::Source::Always
+
+#### Test spec
+# If you have a list of tests (or URLs, or anything else you want to test) 
+# in a file, you can add them to your tests by using a '-':
+#
+#     prove - < my_list_of_things_to_test.txt
