@@ -7,7 +7,7 @@ use Data::Dumper;
 use Carp qw( croak confess longmess );
 use Path::Tiny;
 use Try::Tiny;
-use MT::Logger::Log4perl qw( :resurrect get_logger );
+use MT::Logger::Log4perl qw( :resurrect get_logger l4mtdump );
 use Carp::Always;
 
 our ( $l4p, $mtlog );
@@ -17,7 +17,6 @@ sub init {}
 sub post_init {
     my $cb  = shift;
     my $app = shift;
-    ##l4p $l4p ||= get_logger(); $l4p->trace();
     my $conf = try { path(( $ENV{MT_HOME} // $app->mt_dir ), 'log4mt.conf' ) };
     return MT::Logger::Log4perl->reinitialize( $conf )
         if $conf && $conf->is_file;
@@ -28,12 +27,12 @@ sub init_request {
     my $plugin = shift;
     my $app    = shift;
     my $q      = try { $app->query } || $app->param;
-    ###l4p $l4p ||= get_logger(); $l4p->trace();
+    ###l4p $l4p ||= get_logger(); $l4p->trace('init_request');
 
     unless (   $q->param('password')
             && grep { $q->param($_) } qw( username old_pass hint ) ) {
 
-        ##l4p $l4p->info( 'App query: ', l4mtdump( $q ));
+        ###l4p $l4p->info( 'App query: ', l4mtdump( $q ));
         return;
     }
     ###l4p $l4p->info( 'App query for mode ', ($app->mode||''),
@@ -43,7 +42,7 @@ sub init_request {
 
 sub show_template_params {
     ###l4p my ( $cb, $app, $param, $tmpl ) = @_;
-    ###l4p $l4p ||= get_logger(); $l4p->trace();
+    ###l4p $l4p ||= get_logger(); $l4p->trace('show_template_params');
     ###l4p
     ###l4p my @msgs = ( 'Initial outgoing template parameters: ' );
     ###l4p

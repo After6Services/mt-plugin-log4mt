@@ -11,9 +11,6 @@ use List::Util qw( first );
 use Scalar::Util qw( blessed );
 use Path::Tiny;
 use Carp::Always;
-# use Log::Log4perl ();
-
-# use parent qw( MT::Logger::Log4perl::Config );
 
 has '+config' => (
     lazy      => 1,

@@ -1,7 +1,8 @@
 package MT::Logger::Log4perl;
 
+use Moo;
+    extends 'Log::Log4perl';
 use 5.010001;
-use strict;
 use warnings FATAL => 'all';
 use Import::Into;
 use Data::Printer output => 'STDOUT', colored => 1;
@@ -11,8 +12,6 @@ use Carp::Always;
 
 use version 0.77; our $VERSION = qv("v2.0.0");
 
-use Moo;
-extends 'Log::Log4perl';
 
 Log::Log4perl->wrapper_register( __PACKAGE__ );
 
@@ -23,26 +22,20 @@ our $L4MTDUMP_FILTER_OPTIONS = [
     { 'Data::Dumper'        => 'Dumper' },
 ];
 
-
 sub config_class()          {  'MT::Logger::Log4perl::Config'          }
 sub config_class_auto()     {  'MT::Logger::Log4perl::Config::auto'    }
 sub config_class_default()  {  'MT::Logger::Log4perl::Config::default' }
 
-# Because Log4perl is dumb
 sub import  {
     my $class    = shift;
     my $importer = caller;
-
-    my @myopts               = qw( l4mtdump );
+    my @myopts   = qw( l4mtdump );
     my ( $myargs, $l4pargs ) = part { $_ ~~ @myopts ? 0 : 1  } @_;
-    # warn "\$myargs: ".p($myargs);
 
     if ( 'l4mtdump' ~~ @$myargs ) {
         no strict 'refs';
         *{$importer.'::l4mtdump'} = \&l4mtdump;
     }
-
-    # warn "Importing from Log::Log4perl into $importer: ".p($l4pargs);
     Log::Log4perl->import::into ( $importer, @$l4pargs );
 }
 
@@ -81,13 +74,11 @@ sub reinitialize {
 
 sub _auto_initialize {
     my $self   = shift;
-    # warn "In _auto_initialize";
     require Module::Load;
     Module::Load::load( $self->config_class_auto );
     my $config = $self->config_class_auto->new();
     $config->init()
         or die "Auto-initialization failed";
-    # warn "Config after autoinitialize: ".p($config);
     return $config;
 }
 
