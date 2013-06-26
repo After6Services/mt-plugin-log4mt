@@ -14,6 +14,14 @@ extends 'Log::Log4perl';
 
 Log::Log4perl->wrapper_register( __PACKAGE__ );
 
+our $L4MTDUMP_FILTER_OPTIONS = [
+    # MODULE ################# FUNCTION #
+    { 'DDP'                 => 'p'      },
+    { 'Data::Dumper::Names' => 'Dumper' },
+    { 'Data::Dumper'        => 'Dumper' },
+];
+
+
 sub config_class()          {  'MT::Logger::Log4perl::Config'          }
 sub config_class_auto()     {  'MT::Logger::Log4perl::Config::auto'    }
 sub config_class_default()  {  'MT::Logger::Log4perl::Config::default' }
@@ -47,7 +55,29 @@ sub _auto_initialize {
     Module::Load::load( $self->config_class_auto );
     my $config = $self->config_class_auto->new()
         or die "Auto-initialization failed";
+sub get_l4mtdump_filter {
+    state $_l4mtdump_filter = do {
+        my ( $mod, $func ) =   map { %$_ }
+                             first { my ($m) = %$_;
+                                     eval "require $m; 1;" ? 1 : 0;
+                                   } @$L4MTDUMP_FILTER_OPTIONS;
+        sub {
+            my $ref = shift;
+            $mod->import( return_value => 'dump', caller_info => 0 )
+                if $mod eq 'DDP';
+            return $mod->can($func)->($ref);
+        };
+    };
 }
+
+sub l4mtdump {
+    return unless @_;
+    return shift() if @_ == 1 and not ref $_[0];    # Non-ref scalar
+    my $ref = @_ > 1 ? [ map { \$_ } @_ ]           # Hash or array
+                     : shift;                       # Single reference
+    return { value  => $ref, filter => get_l4mtdump_filter(), };
+}
+
 
 1;
 
