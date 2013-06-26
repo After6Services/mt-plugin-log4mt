@@ -1,7 +1,7 @@
 package MT::Logger::Log4perl::Config;
 
-use 5.010;
 use Moo;
+use 5.010;
 
 use warnings FATAL => 'all';
 use Try::Tiny;
@@ -10,6 +10,7 @@ use Path::Tiny;
 use Scalar::Util qw( blessed );
 use Data::Printer output => 'STDOUT', colored => 0;
 use Carp qw( croak );
+use Carp::Always;
 
 use version 0.77; our $VERSION = qv("v2.0.0");
 
@@ -74,7 +75,8 @@ sub init {
     my $self = shift;
     my $conf = $self->config || (@_ ? $self->config(+shift) : undef)
         or croak 'No config defined';
-    $self->_initializer($conf)->();
+    return $conf if $conf eq '1';          # 1 returned from default.pm
+    return $self->_initializer($conf)->(); 
 }
 
 sub reset {
@@ -87,13 +89,11 @@ sub auto_initialize {
     my $self = shift;
     my %args = @_;
     $self    = $self->_new(%args);
-
     require Module::Load;
     Module::Load::load( $self->autoinit_class );
     my $config = $self->autoinit_class->new(%args)
         or die "Auto-initialization failed";
 }
-
 
 sub _initializer {
     my $self = shift;

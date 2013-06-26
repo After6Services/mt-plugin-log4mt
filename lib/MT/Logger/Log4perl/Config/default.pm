@@ -11,24 +11,15 @@ use Data::Printer   output => 'STDOUT', colored => 0;
 use List::Util      qw( first );
 use Scalar::Util    qw( blessed );
 use Path::Tiny;
+use Carp::Always;
 
+has '+config' => (
+    # lazy      => 1,
+    builder   => 1,
+);
 
 sub _build_config {
     my $self   = shift;
-    my $config = first { $self->_initializer($_)->() }
-                       ( $self->_config_env_vars, $self->_config_search );
-
-    $config ||= $self->_config_default
-        or die "Failed to initialize Log4perl";
-
-    p $config;
-    return $config;
-}
-
-sub auto_initialize { shift->new(@_) };
-
-sub _config_default() {
-    my $self      = shift;
     my $level     = $self->default_level;
     my @appenders = $self->add_appender( $_)
         foreach $self->default_appenders();
@@ -40,9 +31,11 @@ sub _config_default() {
     return 1;
     # $log->level( $self->default_level );
     # $log->appender($_) foreach $self->default_appenders();
-    die "NOT IMPLEMENTED";
-    state $str = \ do { local $/; <DATA> };
-    return { type => 'string', config => $str   };
+    # die "NOT IMPLEMENTED";
+    # state $str = \ do { local $/; <DATA> };
+    # return { type => 'string', config => $str   };
+    # p $config;
+    # return $config;
 }
 
 sub default_level {

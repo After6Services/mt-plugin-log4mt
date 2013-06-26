@@ -66,12 +66,31 @@ before get_logger => sub {
     $self->_auto_initialize() unless $self->initialized;
 };
 
+sub reinitialize {
+    my $self     = shift;
+    my $cfg_file = shift;
+    $self->initialized
+        and (warn "Resetting for reinitialize"), $self->reset;
+    require Module::Load;
+    Module::Load::load( $self->config_class );
+    my $config = $self->config_class->new( config => $cfg_file );
+    $config->init()
+        or die "Re-initialization failed";
+    return 1;
+}
+
 sub _auto_initialize {
     my $self   = shift;
+    # warn "In _auto_initialize";
     require Module::Load;
     Module::Load::load( $self->config_class_auto );
-    my $config = $self->config_class_auto->new()
+    my $config = $self->config_class_auto->new();
+    $config->init()
         or die "Auto-initialization failed";
+    # warn "Config after autoinitialize: ".p($config);
+    return $config;
+}
+
 sub get_l4mtdump_filter {
     state $_l4mtdump_filter = do {
         my ( $mod, $func ) =   map { %$_ }
