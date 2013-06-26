@@ -5,7 +5,9 @@ use strict;
 use warnings FATAL => 'all';
 use Import::Into;
 use Data::Printer output => 'STDOUT', colored => 1;
-# use Carp::Always;
+use List::Util qw( first );
+use List::MoreUtils qw( part );
+use Carp::Always;
 
 use version 0.77; our $VERSION = qv("v2.0.0");
 
@@ -27,7 +29,22 @@ sub config_class_auto()     {  'MT::Logger::Log4perl::Config::auto'    }
 sub config_class_default()  {  'MT::Logger::Log4perl::Config::default' }
 
 # Because Log4perl is dumb
-sub import  { shift; Log::Log4perl->import::into ( scalar caller, @_ ) }
+sub import  {
+    my $class    = shift;
+    my $importer = caller;
+
+    my @myopts               = qw( l4mtdump );
+    my ( $myargs, $l4pargs ) = part { $_ ~~ @myopts ? 0 : 1  } @_;
+    # warn "\$myargs: ".p($myargs);
+
+    if ( 'l4mtdump' ~~ @$myargs ) {
+        no strict 'refs';
+        *{$importer.'::l4mtdump'} = \&l4mtdump;
+    }
+
+    # warn "Importing from Log::Log4perl into $importer: ".p($l4pargs);
+    Log::Log4perl->import::into ( $importer, @$l4pargs );
+}
 
 around [qw( init init_once init_and_watch easy_init appender_by_name
             appender_thresholds_adjust eradicate_appender )] => sub {
