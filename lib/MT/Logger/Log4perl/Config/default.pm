@@ -21,21 +21,12 @@ has '+config' => (
 sub _build_config {
     my $self   = shift;
     my $level     = $self->default_level;
-    my @appenders = $self->add_appender( $_)
-        foreach $self->default_appenders();
 
-    my $l = $self->SUPER::get_logger();
+    my $l = Log::Log4perl->get_logger();
     $l->level( $level );
-    $l->appender($_) for @appenders;
+    $l->add_appender($_) for values %{ $self->default_appenders() };
 
     return 1;
-    # $log->level( $self->default_level );
-    # $log->appender($_) foreach $self->default_appenders();
-    # die "NOT IMPLEMENTED";
-    # state $str = \ do { local $/; <DATA> };
-    # return { type => 'string', config => $str   };
-    # p $config;
-    # return $config;
 }
 
 sub default_level {

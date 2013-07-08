@@ -23,7 +23,7 @@ sub _build_config {
                        ( $self->_config_env_vars, $self->_config_search );
 
     unless ( $config ) {
-        warn "Falling back to default configuration";
+        warn "Falling back to default configuration in ".$self->default_class;
         require Module::Load;
         Module::Load::load( $self->default_class );
         $config = $self->default_class->new()->init()
