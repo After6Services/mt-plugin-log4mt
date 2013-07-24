@@ -12,6 +12,7 @@ use List::Util      qw( first );
 use Scalar::Util    qw( blessed );
 use Path::Tiny;
 use Carp::Always;
+use Sub::Quote qw( quote_sub );
 
 # Must be on one line so MakeMaker can parse it.
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
@@ -22,28 +23,28 @@ has '+config'   => (
 
 has 'level'     => (
     is      => 'ro',
-    isa     => 'Int'
+    isa     => quote_sub(q{ Scalar::Util::looks_like_number($_[0]) }),
     lazy    => 1,
     builder => 1,
 );
 
-has 'layout'    => (
+has 'layouts'    => (
     is      => 'ro',
-    isa     => 'HashRef',
+    isa     => quote_sub(q{ ref($_[0]) eq 'HASH' and scalar keys %{ $_[0] }}),
     lazy    => 1,
     builder => 1,
 );
 
 has 'filters'   => (
     is      => 'ro',
-    isa     => 'HashRef',
+    isa     => quote_sub(q{ ref($_[0]) eq 'HASH' and scalar keys %{ $_[0] }}),
     lazy    => 1,
     builder => 1,
 );
 
 has 'appenders' => (
     is      => 'ro',
-    isa     => 'HashRef',
+    isa     => quote_sub(q{ ref($_[0]) eq 'HASH' and scalar keys %{ $_[0] }}),
     lazy    => 1,
     builder => 1,
 );
@@ -53,7 +54,6 @@ sub _build_config {
     my $l    = Log::Log4perl->get_logger();
     $l->level( $self->level );
     $l->add_appender($_) for values %{ $self->appenders() };
-
     return 1;
 }
 
