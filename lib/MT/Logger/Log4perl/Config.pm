@@ -11,7 +11,8 @@ use Data::Printer output => 'STDOUT', colored => 0;
 use Carp qw( croak );
 use Carp::Always;
 
-use version 0.77; our $VERSION = qv("v2.0.0");
+# Must be on one line so MakeMaker can parse it.
+use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
 has 'env_vars' => (
     is      => 'ro',

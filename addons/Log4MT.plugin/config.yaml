@@ -30,7 +30,8 @@ tags:
 ||||||| parent of 3969559... Adding Log4MT plugin and fixing up reinitialization as well as auto and default configuration
 =======
 name:               Log4MT
-version:            1.7.5
+version:            1.9.1
+# Version is also required in Log4MT::Version
 author_name:        "Jay Allen, Endevver LLC"
 author_link:        http://endevver.com/
 description:        The Log4MT plugin enhances Movable Type with the fantastic and ultra-powerful Log4Perl logging framework.

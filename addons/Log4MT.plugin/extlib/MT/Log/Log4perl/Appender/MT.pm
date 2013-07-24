@@ -7,6 +7,9 @@ use Log::Log4perl;
 use parent  qw( Log::Log4perl::Appender );
 use Data::Dumper;
 
+# Must be on one line so MakeMaker can parse it.
+use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
+
 our $ENABLED = 0;
 our $BUFFER  = [];
 

@@ -12,6 +12,9 @@ use Scalar::Util qw( blessed );
 use Path::Tiny;
 use Carp::Always;
 
+# Must be on one line so MakeMaker can parse it.
+use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
+
 has '+config' => (
     lazy      => 1,
     builder   => 1,

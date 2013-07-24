@@ -9,7 +9,8 @@ use Import::Into;
 use List::Util qw( first );
 use List::MoreUtils qw( part );
 
-use version 0.77; our $VERSION = qv("v2.0.0");
+# Must be on one line so MakeMaker can parse it.
+use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
 use Carp::Always;
 use Data::Printer output => 'STDOUT', colored => 1;
