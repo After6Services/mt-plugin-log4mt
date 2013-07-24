@@ -83,37 +83,24 @@ sub default_appenders {
                         autoflush    => 1,
                         layout       => $layout->{stderr},
                     ),
-
+        'Marker' => Log::Log4perl::Appender->new(
+                        'Log::Log4perl::Appender::Screen',
+                        # Threshold => 'WARN',
+                        Filter      => $self->filters->{TraceOnly},
+                        name        => 'Stderr',
+                        stderr      => 1,
+                        syswrite    => 1,
+                        utf8        => 1,
+                        autoflush   => 1,
+                        layout      => $layout->{trace},
+                    ),
         'MTLog'  => Log::Log4perl::Appender->new(
                         "MT::Log::Log4perl::Appender::MT",
                         warp_message => 0,
                         layout       => 'Log::Log4perl::Layout::NoopLayout',
                         Threshold    => 'ERROR',
                     ),
-
-        # 'Marker' => Log::Log4perl::Appender->new(
-        #                 "Log::Log4perl::Appender::File",
-        #                 Filter   => $self->default_filters->{TraceOnly},
-        #                 # filename => $log_file,
-        #                 mode     => 'append',
-        #                 umask    => '0000',
-        #                 recreate => 1,
-        #                 layout   => $layout->{trace},
-        #             ),
-        # 
-        # 'File'   => Log::Log4perl::Appender->new(
-        #                 "Log::Log4perl::Appender::File",
-        #                 # filename  => $log_file,
-        #                 mode      => 'append',
-        #                 umask     => '0000',
-        #                 recreate  => 1,
-        #                 layout    => $layout->{dated},
-        #                 Threshold => 'DEBUG',
-        #             ),
-
     };
-
-    # $appender->layout( $self->default_layouts );
     return $appenders;
 }
 
