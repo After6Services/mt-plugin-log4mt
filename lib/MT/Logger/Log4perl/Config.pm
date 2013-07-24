@@ -33,7 +33,7 @@ sub driver_class {
     $attr = $_[1] // $attr;
 }
 
-has driver => (
+has 'driver' => (
     is       => 'ro',
     init_arg => 'driver',
     lazy     => 1,
@@ -41,14 +41,14 @@ has driver => (
     trigger  => sub { shift()->driver_class(+shift) }
 );
 
-has autoinit_class => (
+has 'autoinit_class' => (
     is       => 'ro',
     init_arg => 'autoinit',
     lazy     => 1,
     default  => 'MT::Logger::Log4perl::Config::auto',
 );
 
-has default_class => (
+has 'default_class' => (
     is       => 'ro',
     init_arg => 'default',
     lazy     => 1,
