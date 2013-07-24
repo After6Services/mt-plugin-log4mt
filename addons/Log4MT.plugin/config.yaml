@@ -30,14 +30,14 @@ tags:
 ||||||| parent of 3969559... Adding Log4MT plugin and fixing up reinitialization as well as auto and default configuration
 =======
 name:               Log4MT
-key:                Log4MT
-id:                 Log4MT
 version:            1.7.5
 author_name:        "Jay Allen, Endevver LLC"
 author_link:        http://endevver.com/
 description:        The Log4MT plugin enhances Movable Type with the fantastic and ultra-powerful Log4Perl logging framework.
 plugin_link:        http://github.com/endevver/mt-plugin-log4mt
 doc_link:           https://github.com/endevver/mt-plugin-log4mt/blob/master/README.markdown
+key:                Log4MT
+id:                 Log4MT
 
 config_settings:
     Log4MTConfig:
