@@ -16,63 +16,83 @@ use Carp::Always;
 # Must be on one line so MakeMaker can parse it.
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
-has '+config' => (
-    # lazy      => 1,
-    builder   => 1,
+has '+config'   => (
+    builder => 1,
+);
+
+has 'level'     => (
+    is      => 'ro',
+    isa     => 'Int'
+    lazy    => 1,
+    builder => 1,
+);
+
+has 'layout'    => (
+    is      => 'ro',
+    isa     => 'HashRef',
+    lazy    => 1,
+    builder => 1,
+);
+
+has 'filters'   => (
+    is      => 'ro',
+    isa     => 'HashRef',
+    lazy    => 1,
+    builder => 1,
+);
+
+has 'appenders' => (
+    is      => 'ro',
+    isa     => 'HashRef',
+    lazy    => 1,
+    builder => 1,
 );
 
 sub _build_config {
-    my $self   = shift;
-    my $level     = $self->default_level;
-
-    my $l = Log::Log4perl->get_logger();
-    $l->level( $level );
-    $l->add_appender($_) for values %{ $self->default_appenders() };
+    my $self = shift;
+    my $l    = Log::Log4perl->get_logger();
+    $l->level( $self->level );
+    $l->add_appender($_) for values %{ $self->appenders() };
 
     return 1;
 }
 
-sub default_level {
-    my $self = shift;
+sub _build_level {
     require Log::Log4perl::Level;
-    state $level = Log::Log4perl::Level::to_priority('TRACE');
-    return $level;
+    return Log::Log4perl::Level::to_priority('TRACE');
 }
 
-sub default_layouts {
+sub _build_layouts {
     require Log::Log4perl::Layout;
-    state $mark          = '#########################';
-    state $multiline_pat = 'Log::Log4perl::Layout::PatternLayout::Multiline';
-    state $layout        = {
-        map { $_->[0] => $multiline_pat->new( $_->[1] ) }
+    my $mark          = '#########################';
+    my $pat_class = 'Log::Log4perl::Layout::PatternLayout::Multiline';
+    return {
+        map { $_->[0] => $pat_class->new( $_->[1] ) }
             [ stderr  => '%p> %m (in %M() %F, line %L)%n'           ],
             [ dated   => '%d %p> %c %M{1} (%L) | %m%n'              ],
             [ minimal => '%m%n'                                     ],
             [ trace   => '%d %p> $mark   "%c %M{1} (%L)"   $mark%n'
                        . '%d %p> %m  [[ Caller: %l ]]%n'            ],
     };
-    return $layout;
 }
 
 
-sub default_filters {
+sub _build_filters {
     my $self = shift;
     require Log::Log4perl::Filter::LevelMatch;
-    state $filters = {
+    return {
         TraceOnly => Log::Log4perl::Filter::LevelMatch->new(
                         name          => 'TraceOnly',
                         LevelToMatch  => 'TRACE',
                         AcceptOnMatch => 1,
                     ),
     };
-    return $filters;
 }
 
-sub default_appenders {
-    my $self         = shift;
-    my $log_file;
-    state $layout   = $self->default_layouts;
-    state $appenders = {
+sub _build_appenders {
+    my $self   = shift;
+    my $layout = $self->layouts;
+    return {
         'Stderr' => Log::Log4perl::Appender->new(
                         'Log::Log4perl::Appender::Screen',
                         name         => 'Stderr',
@@ -101,7 +121,6 @@ sub default_appenders {
                         Threshold    => 'ERROR',
                     ),
     };
-    return $appenders;
 }
 
 1;
@@ -124,7 +143,7 @@ log4perl.logger                         = TRACE, Marker, File, Errorlog, MTLog
 # The setting below defines the absolute path to your desired location for the
 # Log4MT log file.  This file should exist and have permissions that allow MT
 # to write to it.  If in doubt, use 777 (or "rwxrwxrwx").
-log_file                                = /usr/local/var/log/log4mt.log
+log_file                                = /var/log/log4mt.log
 
 ######################
 # LAYOUT DEFINITIONS #
