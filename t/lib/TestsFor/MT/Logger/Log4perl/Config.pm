@@ -81,6 +81,7 @@
 
     sub test_config_bad_file  : Tags( config ) {
         my $test = shift;
+        local $SIG{__WARN__} = sub {};
         $test->_new( @_, [$test->_bad_file_arg], $test->_no_init_error );
     }
 }

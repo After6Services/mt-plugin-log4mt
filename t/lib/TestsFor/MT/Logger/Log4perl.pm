@@ -86,6 +86,7 @@ use lib 't/lib';
 
     sub test_get_logger         : Tags( compat logging ) {
         my ( $test, $report ) = @_;
+        local $SIG{__WARN__} = sub {};
         my $logger = MT::Logger::Log4perl->get_logger();
         isa_ok( $logger, 'Log::Log4perl::Logger' )
             or explain $logger;
