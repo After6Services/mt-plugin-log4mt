@@ -39,8 +39,6 @@ description:        The Log4MT plugin enhances Movable Type with the fantastic a
 plugin_link:        http://github.com/endevver/mt-plugin-log4mt
 doc_link:           https://github.com/endevver/mt-plugin-log4mt/blob/master/README.markdown
 
-# init:               $Log4MT::Log4MT::init
-
 config_settings:
     Log4MTConfig:
         default:    log4mt.conf

@@ -2,16 +2,17 @@ package MT::Logger::Log4perl;
 
 use Moo;
     extends 'Log::Log4perl';
-use 5.010001;
+
+use 5.010001;           # 5.10.1
 use warnings FATAL => 'all';
 use Import::Into;
-use Data::Printer output => 'STDOUT', colored => 1;
 use List::Util qw( first );
 use List::MoreUtils qw( part );
-use Carp::Always;
 
 use version 0.77; our $VERSION = qv("v2.0.0");
 
+use Carp::Always;
+use Data::Printer output => 'STDOUT', colored => 1;
 
 Log::Log4perl->wrapper_register( __PACKAGE__ );
 
