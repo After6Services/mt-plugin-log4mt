@@ -189,6 +189,13 @@ log4perl.appender.MTLog.warp_message                = 0
 log4perl.appender.MTLog.layout                      = Log::Log4perl::Layout::NoopLayout
 log4perl.appender.MTLog.Threshold                   = ERROR
 
+##########$############
+### MTMail appender ###
+###########$###########
+log4perl.appender.MTMail                            = MT::Log::Log4perl::Appender::MT::Mail
+log4perl.appender.MTMail.layout                     = Log::Log4perl::Layout::NoopLayout
+# log4perl.appender.MTMail.default_recipient          = 
+
 #######################
 ### Stderr appender ###
 #######################
