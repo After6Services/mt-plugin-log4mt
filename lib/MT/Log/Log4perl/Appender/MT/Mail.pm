@@ -5,34 +5,44 @@ use Moo;
 use Try::Tiny;
 use Carp qw( cluck confess longmess );
 use MT::Logger::Log4perl qw( get_logger );
+use Sub::Quote qw( quote_sub );
 
 # Must be on one line so MakeMaker can parse it.
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
 has 'app' => (
     is      => 'ro',
-    isa     => 'MT::App',
+    isa     => quote_sub(q{ 
+                      Scalar::Util::blessed($_[0])
+                   && $_[0]->isa('MT::App') 
+               }),
     lazy    => 1,
     builder => 1,
 );
 
 has 'from' => (
     is      => 'ro',
-    isa     => 'EmailAddress',
+    isa     => quote_sub(q{ 
+                   require MT::Util;
+                   $_[0] && MT::Util::is_valid_email($_[0]);
+               }),
     lazy    => 1,
     builder => 1,
 );
 
 has 'content_type' => (
     is      => 'ro',
-    isa     => 'Str',
+    isa     => quote_sub(q{ length($_[0]) and $_[0] =~ m/\w/ }),
     lazy    => 1,
     builder => 1,
 );
 
 has 'default_recipient' => (
     is      => 'ro',
-    isa     => 'EmailAddress',
+    isa     => quote_sub(q{ 
+                   require MT::Util;
+                   $_[0] && MT::Util::is_valid_email($_[0]);
+               }),
     lazy    => 1,
     builder => 1,
 );
@@ -101,4 +111,3 @@ sub log { ## no critic
 }
 
 1;
-
