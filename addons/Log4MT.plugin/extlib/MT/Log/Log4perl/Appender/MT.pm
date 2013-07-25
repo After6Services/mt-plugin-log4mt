@@ -6,6 +6,7 @@ use warnings;
 use Log::Log4perl;
 use parent  qw( Log::Log4perl::Appender );
 use Data::Dumper;
+use Try::Tiny;
 
 # Must be on one line so MakeMaker can parse it.
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
@@ -66,6 +67,10 @@ sub buffer {
     $BUFFER;
 }
 
+sub _build_app {
+    return MT->instance if try { ref $MT::mt_inst };
+}
+
 sub flush {
     my $self   = shift;
     my ($data) = @_;
@@ -74,11 +79,16 @@ sub flush {
         return scalar @{ $self->buffer( $data // () ) };
     }
 
-    my ( $cnt, $mt ) = ( 0, undef );
+    my $mt = $self->_build_app;
+    unless ( $mt ) {
+        warn __PACKAGE__.'::flush called before MT initialized. Buffered data';
+        return scalar @{ $self->buffer( $data // () ) };
+    }
+
+    my $cnt = 0;
     my $buffer       = $self->buffer( $data // () );
     while ( @$buffer ) {
         my $d = shift @$buffer or next;
-        $mt ||= MT->instance;
         $cnt += $mt->log({
             level   => $self->check_level( $d ),
             message => $self->warp_text( $d ),
