@@ -1,7 +1,6 @@
 package MT::Log::Log4perl::Appender::MT::Mail;
 
 use Moo;
-    extends qw(Log::Log4perl::Appender);
 
 use Try::Tiny;
 use Carp qw( cluck confess longmess );
