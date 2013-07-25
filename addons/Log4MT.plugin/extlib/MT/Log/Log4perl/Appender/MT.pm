@@ -39,12 +39,13 @@ sub new {#                          warp_message
 sub enabled {
     my $self   = shift;
     my $newval = shift;
-
     return $ENABLED
         unless defined $newval and $newval != $ENABLED;
 
-    $ENABLED = $newval;
-    return $ENABLED ? $self->flush() : $ENABLED;
+    if ( $ENABLED = $newval ) {
+        $self->flush();
+    }
+    return $ENABLED;
 }
 
 ###
