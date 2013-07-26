@@ -210,3 +210,19 @@ log4perl.appender.MTMail                        = MT::Log::Log4perl::Appender::M
 log4perl.appender.MTMail.appender               = MTMailUnbuffered
 
 log4perl.logger.mtmail                              = DEBUG, MTMail
+
+=pod
+
+=head3 Minimal default configuration
+
+This method returns a basic configuration which defines appenders for both
+standard error (C<Stderr>) and standard output C<Stdout> but defaults to
+using only standard error for output.
+
+=head2 default_layouts
+
+=head2 default_filters
+
+=head2 default_appenders
+
+=cut
