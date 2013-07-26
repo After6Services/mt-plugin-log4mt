@@ -42,19 +42,21 @@ sub init_request {
 
 sub show_template_params {
     ###l4p my ( $cb, $app, $param, $tmpl ) = @_;
-    ###l4p $l4p ||= get_logger(); $l4p->trace('show_template_params');
+    ###l4p $l4p ||= get_logger();
     ###l4p
-    ###l4p my @msgs = ( 'Initial outgoing template parameters: ' );
-    ###l4p
-    ###l4p unless ( $app->request('Log4MT_template_params_output') ) {
-    ###l4p     push( @msgs,
-    ###l4p         map {
-    ###l4p             sprintf( "\t%-30s %s", ($_//''), ($param->{$_}//''))
-    ###l4p         } sort keys %$param
-    ###l4p     );
-    ###l4p     $app->request( 'Log4MT_template_params_output', 1 );
+    ###l4p my @msgs;
+    ###l4p if ( scalar keys %$param ) {
+    ###l4p     unless ( $app->request('Log4MT_template_params_output') ) {
+    ###l4p         $l4p->trace('show_template_params');
+    ###l4p         push( @msgs, 'Initial outgoing template parameters: ' );
+    ###l4p         push( @msgs,
+    ###l4p             map {
+    ###l4p                 sprintf( "\t%-30s %s", ($_//''), ($param->{$_}//''))
+    ###l4p             } sort keys %$param
+    ###l4p         );
+    ###l4p         $app->request( 'Log4MT_template_params_output', 1 );
+    ###l4p     }
     ###l4p }
-    ###l4p
     ###l4p my $f = 'template_filename';
     ###l4p push( @msgs, "Loading app template ".($param->{$f} // "[$f is NULL]" ));
     ###l4p
