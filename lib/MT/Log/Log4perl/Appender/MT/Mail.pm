@@ -1,11 +1,14 @@
 package MT::Log::Log4perl::Appender::MT::Mail;
 
 use Moo;
-
+use v5.10.1;
 use Try::Tiny;
-use Carp qw( cluck confess longmess );
-use MT::Logger::Log4perl qw( get_logger );
+use Carp qw( cluck confess );
 use Sub::Quote qw( quote_sub );
+use MT::Util;
+
+use Log::Log4perl;
+Log::Log4perl->wrapper_register(__PACKAGE__);
 
 # Must be on one line so MakeMaker can parse it.
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
@@ -13,8 +16,9 @@ use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 has 'app' => (
     is      => 'ro',
     isa     => quote_sub(q{ 
-                      Scalar::Util::blessed($_[0])
-                   && $_[0]->isa('MT::App') 
+                      die 'Not an MT::App subclass'
+                        unless Scalar::Util::blessed($_[0])
+                            && $_[0]->isa('MT')
                }),
     lazy    => 1,
     builder => 1,
@@ -22,27 +26,30 @@ has 'app' => (
 
 has 'from' => (
     is      => 'ro',
-    isa     => quote_sub(q{ 
-                   require MT::Util;
-                   $_[0] && MT::Util::is_valid_email($_[0]);
-               }),
+    isa     =>  quote_sub(q{ 
+                    die "Invalid email"
+                        unless $_[0] && MT::Util::is_valid_email($_[0]);
+                }),
     lazy    => 1,
     builder => 1,
 );
 
 has 'content_type' => (
     is      => 'ro',
-    isa     => quote_sub(q{ length($_[0]) and $_[0] =~ m/\w/ }),
+    isa     =>  quote_sub(q{ 
+                    die 'Malformed content_type'
+                        unless length($_[0]) and $_[0] =~ m/\w/
+                }),
     lazy    => 1,
     builder => 1,
 );
 
 has 'default_recipient' => (
     is      => 'ro',
-    isa     => quote_sub(q{ 
-                   require MT::Util;
-                   $_[0] && MT::Util::is_valid_email($_[0]);
-               }),
+    isa     =>  quote_sub(q{ 
+                    die "Invalid email"
+                        unless $_[0] && MT::Util::is_valid_email($_[0]);
+                }),
     lazy    => 1,
     builder => 1,
 );
@@ -84,28 +91,28 @@ sub _build_content_type {
     return qq(text/plain; charset="$charset");
 }
 
-sub log { ## no critic
+sub log {
     my ( $self, %params ) = @_;
     my $app     = $self->app;
     my $from    = $self->from;
-    my $to      = $params{to} // $params{To} // $self->default_recipient;
-    my $body    = $params{message};
-    my $subject = $params{subject}
-               // $params{Subject}
+    my $log     = { @{ $params{message} } };
+    my $to      = $log->{to} // $log->{To} // $self->default_recipient;
+    my $body    = $log->{message};
+    my $subject = $log->{subject}
+               // $log->{Subject}
                // $params{log4p_level} .': '.$params{log4p_category};
 
     return unless $from && $to && $body && $subject;
 
+    my $head = {
+        'Content-Type' => $self->content_type,
+        From           => $from,
+        To             => $to,
+        Subject        => $subject,
+    };
+
     require MT::Mail;
-    MT::Mail->send(
-        {
-            'Content-Type' => $self->content_type,
-            From           => $from,
-            To             => $to,
-            Subject        => $subject,
-        },
-        $body,
-    )
+    MT::Mail->send( $head, $body )
         or die MT::Mail->errstr();
     1;
 }

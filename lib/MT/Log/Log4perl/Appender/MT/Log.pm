@@ -1,133 +1,42 @@
-package MT::Log::Log4perl::Appender::MT;
+package MT::Log::Log4perl::Appender::MT::Log;
 
-use 5.010_001;
-use strict;
-use warnings;
-use Log::Log4perl;
-use parent  qw( Log::Log4perl::Appender );
-use Data::Dumper;
+use Moo;
+use v5.10.1;
 use Try::Tiny;
+
+use Log::Log4perl;
+Log::Log4perl->wrapper_register(__PACKAGE__);
 
 # Must be on one line so MakeMaker can parse it.
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
-our $ENABLED = 0;
-our $BUFFER  = [];
-
-Log::Log4perl->wrapper_register(__PACKAGE__);
-
-####
-###  Common %params keys include:   appender  buffer  composite
-##                                  composite  filter  layout  level
-#                                   log4p_category  min_level  mode  name
-sub new {#                          warp_message
-    my $proto        = shift;
-    my $class        = ref $proto || $proto;
-    my %params       = @_;
-    my $caller       = (caller(1))[3];
-
-    my $self = {
-        name     => "unknown name",
-        category => $class,
-        caller   => $caller,
-        %params,
-    };
-
-    bless $self, $class;
-    return $self;
-}
-
-sub enabled {
-    my $self   = shift;
-    my $newval = shift;
-    return $ENABLED
-        unless defined $newval and $newval != $ENABLED;
-
-    if ( $ENABLED = $newval ) {
-        $self->flush();
-    }
-    return $ENABLED;
-}
-
-###
-##  Superclass's arguments:
-##      my ($self, $p, $category, $level, $cache) = @_;
-#
-sub log {
-    my $self   = shift;
-    my $params = { @_ };
-    return $self->flush($params) if $self->enabled;
-    return scalar @{ $self->buffer($params) };
-}
-
-sub buffer {
-    my $self  = shift;
-    $BUFFER ||= [];
-    push( @$BUFFER, @_ ) if @_;
-    $BUFFER;
-}
-
-sub _build_app {
-    return MT->instance if try { ref $MT::mt_inst };
-}
-
-sub flush {
-    my $self   = shift;
-    my ($data) = @_;
-    unless ( $self->enabled ) {
-        warn __PACKAGE__.'::flush called before enabled. Buffered data';
-        return scalar @{ $self->buffer( $data // () ) };
-    }
-
-    my $mt = $self->_build_app;
-    unless ( $mt ) {
-        warn __PACKAGE__.'::flush called before MT initialized. Buffered data';
-        return scalar @{ $self->buffer( $data // () ) };
-    }
-
-    my $cnt = 0;
-    my $buffer       = $self->buffer( $data // () );
-    while ( @$buffer ) {
-        my $d = shift @$buffer or next;
-        $cnt += $mt->log({
-            level   => $self->check_level( $d ),
-            message => $self->warp_text( $d ),
-        });
-    }
-    $cnt;
-}
-
-sub check_level {
-    my $self = shift;
-    my $val  = shift;
-    unless ( $self->enabled ) {
-        warn __PACKAGE__.'::check_level called before enabled.';
-        return undef;
-    }
-
-    my $log_class = MT->model('log');
-    state $level  = { map { $_ => $log_class->$_ }
-                        qw( DEBUG INFO WARNING ERROR FATAL SECURITY ) };
-    $val    = ref $val eq 'HASH' ? $val->{log4p_level} : 'ERROR';
-    $level->{$val || 'ERROR'};
-}
-
-sub warp_text {
-    my $self     = shift;
-    my $params   = shift;
-    ref $params or $params = { message => $params, log4p_level => 'INFO' };
-    unless (     ref $params eq 'HASH'
-             and $params->{message}
-             and $params->{log4p_level} ) {
-        die "Unexpected data in warp_text: \$params = ".Dumper($params);
-    }
-
-    my $msg = $params->{message};
-    $msg = join( ' ', @$msg ) if 'ARRAY' eq ref $msg;
-    return $msg;
-}
-
 sub MT::Log::FATAL ()  { 256 }
+
+sub log {
+    my  ( $self, %params )  = @_;
+    my $log       = { $self->_extract_parameters( $params{message} ) };
+    $log->{level} = $self->_check_level( $params{log4p_level} ),
+    MT->instance->log($log);
+}
+
+sub _check_level {
+    my ( $self, $text ) = @_;
+    state $log_class = MT->model('log');
+    state $level     = { map { $_ => $log_class->$_ }
+                            qw( DEBUG INFO WARNING ERROR FATAL SECURITY ) };
+    $level->{$text || 'INFO'};
+}
+
+sub _extract_parameters {
+    my ( $self, $param ) = @_;
+    my $msg = join( ' ', @$param );
+    unless ( $msg =~ m{called at .*? line} ) {
+        $msg .= ' '.Carp::longmess();
+    }
+    return ( message => $msg );
+}
+
+1;
 
 __END__
 
@@ -178,9 +87,54 @@ package main;
 
 use Test::More;
 use Test::Warn;
+use Log::Log4perl qw( get_logger :levels );
 
-is( MT->instance, 'MT', 'MT->instance returns package name');
-my $app = new_ok( 'MT::Log::Log4perl::Appender::MT' );
+Log::Log4perl->init(config());
+
+my $app = MT->instance;
+isa_ok( $app, , 'MT', 'MT->instance' );
+
+my $logger = get_logger();
+isa_ok( $logger, 'Log::Log4perl::Logger', '$logger' );
+
+$logger->debug('debug should be '.MT::Log::DEBUG );
+$logger->info('info should be '.MT::Log::INFO );
+$logger->warn('warning should be '.MT::Log::WARNING );
+$logger->error('error should be '.MT::Log::ERROR );
+$logger->fatal('fatal should be '.MT::Log::FATAL );
+
+done_testing();
+
+sub config {
+\q(
+    log4perl.logger         = TRACE, Errorlog, MTLog
+    layout_class            = Log::Log4perl::Layout::PatternLayout::Multiline
+    layout_stderr           = %p> %m (in %M() %F, line %L)%n
+    layout_pattern_dated    = %d %p> %c %M{1} (%L) | %m%n
+    layout_pattern_minimal  = %m%n
+    layout_pattern_trace    = %d %p> #########################   "%c %M{1} (%L)"   #########################%n%d %p> %m  [[ Caller: %l ]]%n
+    log4perl.appender.MTLog               = MT::Log::Log4perl::Appender::MT::Log
+    log4perl.appender.MTLog.warp_message  = 0
+    log4perl.appender.MTLog.layout        = Log::Log4perl::Layout::NoopLayout
+    log4perl.appender.MTLog.Threshold               = ERROR
+    log4perl.appender.Errorlog                          = Log::Log4perl::Appender::Screen
+    log4perl.appender.Errorlog.stderr                   = 1,
+    log4perl.appender.Errorlog.layout                   = ${layout_class}
+    log4perl.appender.Errorlog.layout.ConversionPattern = ${layout_stderr}
+    log4perl.appender.Errorlog.Threshold                = WARN
+);
+}
+
+__END__
+
+log4perl.appender.MTLogUnbuffered               = MT::Log::Log4perl::Appender::MT::Log
+log4perl.appender.MTLogUnbuffered.warp_message  = 0
+log4perl.appender.MTLogUnbuffered.layout        = Log::Log4perl::Layout::NoopLayout
+log4perl.appender.MTLog                         = MT::Log::Log4perl::Appender::MT::Buffer
+log4perl.appender.MTLog.Threshold               = ERROR
+log4perl.appender.MTLog.appender                = MTLogUnbuffered
+
+
 is( $app->enabled,          0, 'Not enabled' );
 is_deeply( $app->buffer,   [], '$app->buffer is empty array ref'   );
 
@@ -204,45 +158,14 @@ is_deeply( $app->buffer, ['Test 1','Test 2','Test 3'], '$app->buffer is still fu
 warning_like(
     sub {
         is(
-            $app->check_level('FATAL'), undef, 'Check level FATAL = undef'
+            $app->_check_level('FATAL'), undef, 'Check level FATAL = undef'
         )
     },
     qr/called before enabled/,
-    '"Not enabled" warning from check_level()'
+    '"Not enabled" warning from _check_level()'
 );
 
 
 is( $app->enabled(1), 3, 'Enabled returned number of flushed items' );
 is_deeply( $app->buffer, [], '$app->buffer is now empty' );
 
-use Log::Log4perl qw( get_logger );
-Log::Log4perl->init(config());
-my $logger = get_logger();
-
-$logger->fatal('HEY YOU');
-$logger->fatal('No really, hey you!', 'Here are two');
-
-done_testing();
-
-sub config {
-    my $config = q(
-log4perl.logger         = TRACE, Errorlog, MTLog
-layout_class            = Log::Log4perl::Layout::PatternLayout::Multiline
-layout_stderr           = %p> %m (in %M() %F, line %L)%n
-layout_pattern_dated    = %d %p> %c %M{1} (%L) | %m%n
-layout_pattern_minimal  = %m%n
-layout_pattern_trace    = %d %p> #########################   "%c %M{1} (%L)"   #########################%n%d %p> %m  [[ Caller: %l ]]%n
-log4perl.appender.MTLog                             = MT::Log::Log4perl::Appender::MT
-log4perl.appender.MTLog.warp_message                = 0
-log4perl.appender.MTLog.layout                      = Log::Log4perl::Layout::NoopLayout
-log4perl.appender.MTLog.Threshold                   = ERROR
-log4perl.appender.Errorlog                          = Log::Log4perl::Appender::Screen
-log4perl.appender.Errorlog.stderr                   = 1,
-log4perl.appender.Errorlog.layout                   = ${layout_class}
-log4perl.appender.Errorlog.layout.ConversionPattern = ${layout_stderr}
-log4perl.appender.Errorlog.Threshold                = WARN
-);
-    return \$config;
-}
-
-__END__

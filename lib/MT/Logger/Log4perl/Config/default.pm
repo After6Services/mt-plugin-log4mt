@@ -181,21 +181,6 @@ log4perl.appender.File.layout                       = ${layout_class}
 log4perl.appender.File.layout.ConversionPattern     = ${layout_pattern_dated}
 log4perl.appender.File.Threshold                    = DEBUG
 
-######################
-### MTLog appender ###
-######################
-log4perl.appender.MTLog                             = MT::Log::Log4perl::Appender::MT
-log4perl.appender.MTLog.warp_message                = 0
-log4perl.appender.MTLog.layout                      = Log::Log4perl::Layout::NoopLayout
-log4perl.appender.MTLog.Threshold                   = ERROR
-
-##########$############
-### MTMail appender ###
-###########$###########
-log4perl.appender.MTMail                            = MT::Log::Log4perl::Appender::MT::Mail
-log4perl.appender.MTMail.layout                     = Log::Log4perl::Layout::NoopLayout
-# log4perl.appender.MTMail.default_recipient          = 
-
 #######################
 ### Stderr appender ###
 #######################
@@ -204,3 +189,24 @@ log4perl.appender.Errorlog.stderr                   = 1,
 log4perl.appender.Errorlog.layout                   = ${layout_class}
 log4perl.appender.Errorlog.layout.ConversionPattern = ${layout_stderr}
 log4perl.appender.Errorlog.Threshold                = WARN
+
+######################
+### MTLog appender ###
+######################
+log4perl.appender.MTLogUnbuffered               = MT::Log::Log4perl::Appender::MT
+log4perl.appender.MTLogUnbuffered.warp_message  = 0
+log4perl.appender.MTLogUnbuffered.layout        = Log::Log4perl::Layout::NoopLayout
+log4perl.appender.MTLog                         = MT::Log::Log4perl::Appender::MT::Buffer
+log4perl.appender.MTLog.Threshold               = ERROR
+log4perl.appender.MTLog.appender                = MTLogUnbuffered
+
+##########$############
+### MTMail appender ###
+###########$###########
+log4perl.appender.MTMailUnbuffered              = MT::Log::Log4perl::Appender::MT::Mail
+log4perl.appender.MTMailUnbuffered.layout       = Log::Log4perl::Layout::NoopLayout
+# log4perl.appender.MTMail.default_recipient    = 
+log4perl.appender.MTMail                        = MT::Log::Log4perl::Appender::MT::Buffer
+log4perl.appender.MTMail.appender               = MTMailUnbuffered
+
+log4perl.logger.mtmail                              = DEBUG, MTMail
