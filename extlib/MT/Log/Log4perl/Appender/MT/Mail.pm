@@ -66,8 +66,8 @@ sub _build_app {
 sub _build_from {
     my $self = shift;
     my $app  = $self->app;
-    my $from;
-    unless ( $from = $app->config->EmailAddressMain ) {
+    my $from = $app->config->EmailAddressMain || $self->default_sender;
+    unless ( $from ) {
         my $msg = __PACKAGE__ . " failure: "
                 . MT->translate('System Email Address is not configured.');
         $app->log({
@@ -79,7 +79,7 @@ sub _build_from {
         cluck $msg;
         return;
     }
-    
+    return $from;
 }
 
 sub _build_default_recipient { shift()->from }
