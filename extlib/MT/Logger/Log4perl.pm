@@ -31,13 +31,19 @@ sub config_class_default()  {  'MT::Logger::Log4perl::Config::default' }
 sub import  {
     my $class    = shift;
     my $importer = caller;
-    my @myopts   = qw( l4mtdump );
+    my @myopts   = qw( l4mtdump get_logger );
     my ( $myargs, $l4pargs ) = part { $_ ~~ @myopts ? 0 : 1  } @_;
 
     if ( 'l4mtdump' ~~ @$myargs ) {
         no strict 'refs';
         *{$importer.'::l4mtdump'} = \&l4mtdump;
     }
+
+    if ( 'get_logger' ~~ @$myargs ) {
+        no strict 'refs';
+        *{$importer.'::get_logger'} = sub { $class->get_logger(@_) };
+    }
+
     Log::Log4perl->import::into ( $importer, @$l4pargs );
 }
 
@@ -56,10 +62,11 @@ after reset => sub {
     undef $Log::Log4perl::Config::OLD_CONFIG;
 };
 
-before get_logger => sub {
+sub get_logger {
     my $self = shift;
     $self->_auto_initialize() unless $self->initialized;
-};
+    Log::Log4perl->get_logger();
+}
 
 sub reinitialize {
     my $self     = shift;

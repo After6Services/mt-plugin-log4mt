@@ -21,7 +21,7 @@ has 'env_vars' => (
 );
 
 has 'config' => (
-    is        => 'ro',
+    is        => 'rwp',
     clearer   => 1,
     predicate => 1,
     # builder   => 1,
@@ -97,7 +97,7 @@ sub auto_initialize {
 
 sub _initializer {
     my $self = shift;
-    my $conf = $self->config || $self->config(+shift)
+    my $conf = $self->has_config ? $self->config : $self->_set_config(+shift)
         or croak 'No config defined';
     # warn "_initializer with config: ".$conf;
     my $driver = $self->driver_class;
