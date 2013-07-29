@@ -27,8 +27,8 @@
     sub test_from  : Tags( appender mtmail ) {
         my ( $test, $report ) = @_;
         my $appender = $test->class_name->new();
-        my $main = $appender->app->config->EmailAddressMain;
-        is( $appender->from, $main, "From is EmailAddressMain: $main" );
+        my $e = 'jay+send@endevver.com';
+        is( $appender->from, $e, "From is $e" );
     }
 
     sub test_content_type  : Tags( appender mtmail ) {
@@ -43,9 +43,17 @@
     sub test_default_recipient  : Tags( appender mtmail ) {
         my ( $test, $report ) = @_;
         my $appender = $test->class_name->new();
-        my $main = $appender->app->config->EmailAddressMain;
-        is( $appender->from, $main,
-            "Default recipient is EmailAddressMain: $main" );
+        my $e = 'jay+recip@endevver.com';
+        is( $appender->default_recipient, $e,
+            "Default recipient is $e" );
+    }
+
+    sub test_default_sender  : Tags( appender mtmail ) {
+        my ( $test, $report ) = @_;
+        my $appender = $test->class_name->new();
+        my $e = 'jay+send@endevver.com';
+        is( $appender->default_sender, $e,
+            "Default recipient is $e" );
     }
 
     sub test_log  : Tags( appender mtmail ) {

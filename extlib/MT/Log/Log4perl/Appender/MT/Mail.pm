@@ -54,6 +54,16 @@ has 'default_recipient' => (
     builder => 1,
 );
 
+has 'default_sender' => (
+    is      => 'ro',
+    isa     =>  quote_sub(q{ 
+                    die "Invalid email"
+                        unless $_[0] && MT::Util::is_valid_email($_[0]);
+                }),
+    lazy    => 1,
+    builder => 1,
+);
+
 sub _build_app {
     my $app = MT->instance if try { ref $MT::mt_inst };
     unless ( $app ) {
@@ -66,7 +76,7 @@ sub _build_app {
 sub _build_from {
     my $self = shift;
     my $app  = $self->app;
-    my $from = $app->config->EmailAddressMain || $self->default_sender;
+    my $from = $self->default_sender || $app->config->EmailAddressMain;
     unless ( $from ) {
         my $msg = __PACKAGE__ . " failure: "
                 . MT->translate('System Email Address is not configured.');
@@ -82,7 +92,17 @@ sub _build_from {
     return $from;
 }
 
-sub _build_default_recipient { shift()->from }
+sub _build_default_sender {
+    try { Log::Log4perl->appender_by_name('MTMail')->{default_sender} }
+}
+
+sub _build_default_recipient {
+    my $self = shift;
+    try {
+           Log::Log4perl->appender_by_name('MTMail')->{default_recipient}
+        || $self->default_sender
+    };
+}
 
 sub _build_content_type {
     my $self = shift;
@@ -94,9 +114,9 @@ sub _build_content_type {
 sub log {
     my ( $self, %params ) = @_;
     my $app     = $self->app;
-    my $from    = $self->from;
     my $log     = { @{ $params{message} } };
-    my $to      = $log->{to} // $log->{To} // $self->default_recipient;
+    my $from    = $log->{from} || $self->from;
+    my $to      = $log->{to} || $log->{To} || $self->default_recipient;
     my $body    = $log->{message};
     my $subject = $log->{subject}
                // $log->{Subject}
