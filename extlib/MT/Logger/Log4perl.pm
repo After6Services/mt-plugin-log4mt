@@ -65,7 +65,7 @@ after reset => sub {
 sub get_logger {
     my $self = shift;
     $self->_auto_initialize() unless $self->initialized;
-    Log::Log4perl->get_logger();
+    Log::Log4perl->get_logger(@_);
 }
 
 sub reinitialize {
