@@ -29,7 +29,7 @@ Log::Log4perl "[Retire your debugger, log smartly with Log::Log4perl!][]"
 
 ## VERSION ##
 
-1.9.15 (currently in beta)
+1.9.16 (currently in beta)
 
 ## REQUIREMENTS ##
 
