@@ -121,7 +121,7 @@ sub log {
     my $subject = $log->{subject}
                // $log->{Subject}
                // $params{log4p_level} .': '.$params{log4p_category};
-
+    warn "Sending from $from to $to";
     return unless $from && $to && $body && $subject;
 
     my $head = {
