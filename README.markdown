@@ -29,7 +29,7 @@ Log::Log4perl "[Retire your debugger, log smartly with Log::Log4perl!][]"
 
 ## VERSION ##
 
-1.9.16 (currently in beta)
+1.9.17 (currently in beta)
 
 ## REQUIREMENTS ##
 
@@ -70,28 +70,40 @@ We recommend using [cpanm][] for installation of CPAN modules, not only
 because it's awesome, but also because it supports local::lib installation of
 depdendencies for those who do no have root privileges on their systems.
 
-    cpanm Sub::Install Sub::Quote Log::Dispatch Log::Log4perl MooX::Singleton Path::Tiny \
-          Moo Carp::Always strictures Data::Printer Import::Into Class::Method::Modifiers
+    cpanm Sub::Install Sub::Quote Log::Dispatch Log::Log4perl    \
+          MooX::Singleton Path::Tiny Moo Carp::Always strictures \
+          Data::Printer Import::Into Class::Method::Modifiers
     
 And that's it!
 
 ## UPGRADING ##
 
-We've tried our best to keep backwards compatibility to older versions, so 
-if you are upgrading from a version earlier than v1.9.0, you will not have to
-change the use lines or logging statements in your code, which most likely
-look like this (although we strongly recommend you use the form shown in the
-USAGE section below in any new code):
+Although we strongly recommend you use the new logging initialization syntax
+(using MT::Logger::Log4perl) shown in the USAGE section below in any new code,
+we've tried our best to keep backwards compatibility to older versions.
 
+If you are upgrading from a version earlier than v1.9.0, you will not have to
+change the use statements, logger initialization or logging statements in your
+code, which most likely look something like this:
+
+    # The easy way
+    our $logger ||= MT::Log->get_logger()
+
+    # Or, before MT initialization...
+    use MT::Log::Log4perl;
+    our $logger = MT::Log::Log4perl->new();
+
+    # Or, even this, with all the bells and whistles...
     use Log::Log4perl qw( :resurrect );
     ###l4p use MT::Log::Log4perl qw( l4mtdump );
     ###l4p our $logger ||= MT::Log::Log4perl->new();
 
-However, you **will** have to make changes to your current `log4mt.conf` file
-to match the configuration of the default loggers and appenders shown in the
-bundled [log4mt.conf](log4mt.conf). To avoid any problems, it's best to start
-with the bundled config and port any additions or changes (e.g. your log path,
-any custom logging levels, etc) you made from your current config to it.
+That said, you **will** have to make changes to your current `log4mt.conf`
+file to match the configuration of the default loggers and appenders shown in
+the bundled [log4mt.conf](log4mt.conf). To avoid any problems, it's best to
+**start with the bundled config** and port any additions or changes (e.g. your
+log path, any custom logging levels, etc) you made from your current config to
+it.
 
 ## USAGE ##
 
@@ -99,15 +111,43 @@ Using Log4MT in a basic way (i.e. to log messages to a file) is simple. Follow
 the installation instructions linked to above and then add the following to
 your code:
 
-    use MT::Logger::Log4perl qw( get_logger );
+    use MT::Logger::Log4perl [ @IMPORTS ]
 
-Then, whenever you need to log something, simply do the following:
+The @IMPORTS are exactly the same as those you'd use when using Log::Log4perl
+directly.  For example:
+
+* [`get_logger`][]
+* [:resurrect][]
+* [:easy][]
+* [`:levels`][]
+* [`:no_extra_logdie_message`][]
+* `:no_strict`
+* And others. See the [Log::Log4perl documentation][] for more.
+
+[`:no_extra_logdie_message`]:
+   https://metacpan.org/module/Log::Log4perl#Dirty-Tricks
+[`:levels`]:
+   https://metacpan.org/module/Log::Log4perl#Log-Levels
+[`get_logger`]:
+   https://metacpan.org/module/Log::Log4perl#Shortcuts
+[:easy]:
+   https://metacpan.org/module/Log::Log4perl#Easy-Mode
+[:resurrect]:
+   https://metacpan.org/module/Log::Log4perl#Resurrecting-hidden-Log4perl-Statements
+
+Additionally, Log4MT provides one additional import, `l4mtdump`, that installs
+a function of the same name which you can (and should) use to serialize
+objects, references and other complex scalars (see example below).
+
+Once you use MT::Logger::Log4perl, whenever you need to log something, you
+simply do the following:
 
     my $logger = get_logger();
     $logger->trace('I am here');
 
-Instead of `trace()`, you can use any of the Log4perl levels: debug, info,
-warn, error or fatal.
+You can replace `trace` with any of the Log4perl levels—`debug`, `info`,
+`warn`, `error` or `fatal`—or any of the other logger functions described in
+the [Log::Log4perl documentation][] (e.g. [`is_debug`][], [`less_logging`][])
 
     $logger->debug('This is a debug statement');
     $logger->info('FWIW, this is interesting...');
@@ -119,6 +159,11 @@ warn, error or fatal.
 The `trace` function is somewhat special in that it additionally logs some
 information about the location of the logging call as well as characters which
 help to set it off from the rest.  This is best used at the top of a method.
+
+[`is_debug`]:
+   https://metacpan.org/module/Log::Log4perl#Log-Levels
+[`less_logging`]:
+   https://metacpan.org/module/Log::Log4perl#Changing-the-Log-Level-on-a-Logger
 
 ## CONFIGURATION ##
 
