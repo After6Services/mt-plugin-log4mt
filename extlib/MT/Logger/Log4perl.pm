@@ -115,6 +115,22 @@ sub l4mtdump {
 }
 
 
+
+################
+package MT::Log;
+################
+
+Log::Log4perl->wrapper_register(__PACKAGE__);
+
+sub get_logger;
+
+*get_logger = sub {
+    shift if $_[0] and $_[0] eq __PACKAGE__;
+    # FIXME Broke backcompat with MT::Log->get_logger(). subroutine name is incorrect below
+    #    2013/08/03 00:38:15 DEBUG> GneGetFeedback main:: (50) | GneGetFeedback
+    # Log::Log4perl::get_logger( @args );
+    MT::Logger::Log4perl->get_logger( @_ || scalar caller );
+};
 1;
 
 __END__
