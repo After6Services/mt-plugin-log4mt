@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl
 package Test::MT::Logger::Log4perl::useimport;
 
 use 5.010;

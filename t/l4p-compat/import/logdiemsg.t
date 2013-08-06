@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl
 package TestFor::Log4perl::useimport::no_extra_logdie_message;
 use Test::MT::Logger::Log4perl::useimport;
 use parent qw( Test::MT::Logger::Log4perl::useimport );

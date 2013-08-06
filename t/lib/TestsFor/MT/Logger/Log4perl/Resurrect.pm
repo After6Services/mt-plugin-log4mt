@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl
 {
     package TestsFor::MT::Logger::Log4perl::variant::Resurrect;
 

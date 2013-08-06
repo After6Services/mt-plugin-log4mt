@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl
 {
     package TestsFor::MT::Log::Log4perl::Appender::MT::Log;
 
