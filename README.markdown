@@ -1,8 +1,8 @@
-# Log4MT - A plugin for Movable Type v4 and Melody #
+# Log4MT - A plugin for Movable Type v4.x and v5.x #
 
 * **AUTHOR:**     Jay Allen, Endevver LLC, http://endevver.com
 * **LICENSE:**    GNU Public License v2
-* **DATE:**       07/29/2013
+* **DATE:**       08/20/2013
 
 The Log4MT plugin enhances Movable Type with the
 [fantastic and ultra-powerful Log4Perl logging framework][Log4perl]. Like
@@ -29,16 +29,17 @@ Log::Log4perl "[Retire your debugger, log smartly with Log::Log4perl!][]"
 
 ## VERSION ##
 
-1.9.18
+2.0.0
 
 ## REQUIREMENTS ##
 
 * [Movable Type 4.x or greater][mt] or any version of [Melody][]
-* See INSTALLATION for CPAN dependencies
+* A number of CPAN dependencies (see INSTALLATION)
 
 ## LICENSE ##
 
-This program is distributed under the terms of the GNU General Public License, version 2.
+This program is distributed under the terms of the GNU General Public License,
+version 2.
 
 ## INSTALLATION ##
 
@@ -188,14 +189,11 @@ Coming soon...
 
 ## VERSION HISTORY ##
 
-Full details can be found in the [commit logs][] but briefly:
+You can view the [release history][] and [changelog][] in the
+[GitHub repository][].
 
-* 2010/05/18 - Release of v1.7
-* 2008/11/03 - Release of v1.5
-* 2008/04/03 - Release of v1.2 beta 2, small but critical bug fix in the configuration file
-* 2008/04/02 - Initial public release of v1.2-beta 
-
-[commit logs]: http://github.com/endevver/mt-plugin-log4mt/commits/master
+[release history]: https://github.com/openmelody/mt-plugin-log4mt/releases
+[changelog]: https://github.com/openmelody/mt-plugin-log4mt/commits/master
 
 ## AUTHOR ##
 
@@ -227,8 +225,11 @@ of [Endevver LLC][]. I hope that you get as much use out of it as I have.
 [MT]:
    http://movabletype.org
 
+[github repository]:
+   https://github.com/openmelody/mt-plugin-log4mt/
+
 [download]:
-   https://github.com/endevver/mt-plugin-log4mt/downloads
+   https://github.com/openmelody/mt-plugin-log4mt/downloads
 
 [cpanm]:
    https://metacpan.org/module/MIYAGAWA/App-cpanminus-1.6934/bin/cpanm
