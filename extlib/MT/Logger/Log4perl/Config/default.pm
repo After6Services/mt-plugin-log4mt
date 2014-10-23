@@ -1,6 +1,6 @@
 package MT::Logger::Log4perl::Config::default;
 
-use 5.010;
+use 5.008009;
 use Moo;
     extends 'MT::Logger::Log4perl::Config';
 

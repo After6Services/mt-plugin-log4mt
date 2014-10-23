@@ -2,7 +2,7 @@
 {
     package TestsFor::MT::Logger::Log4perl::Config;
 
-    use 5.010;
+    use 5.008009;
     use MT::Logger::Log4perl;
     use Test::Class::Moose;
         with 'Test::Class::Moose::Role::AutoUse';

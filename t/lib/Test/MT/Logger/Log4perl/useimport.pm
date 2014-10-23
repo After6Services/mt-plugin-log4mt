@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 package Test::MT::Logger::Log4perl::useimport;
 
-use 5.010;
+use 5.008009;
 use strict;
 use warnings FATAL => 'all';
 

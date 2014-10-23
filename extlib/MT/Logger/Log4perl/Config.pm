@@ -1,7 +1,7 @@
 package MT::Logger::Log4perl::Config;
 
 use Moo;
-use 5.010;
+use 5.008009;
 use warnings FATAL => 'all';
 use Try::Tiny;
 use Log::Log4perl ();
