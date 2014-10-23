@@ -33,7 +33,7 @@ sub is_mt_initialized {
     my $self = shift;
     state $initialized = 0;
     unless ( $initialized ) {
-        my $app      = try { $MT::mt_inst };
+        my $app      = try { no warnings 'once'; $MT::mt_inst };
         if ( ref($app) && $app->isa('MT') ) {
             $initialized = 1;
         }

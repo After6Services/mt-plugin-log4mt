@@ -58,6 +58,7 @@ around [qw( init init_once init_and_watch easy_init appender_by_name
 };
 
 after reset => sub {
+    no warnings 'once';
     undef $Log::Log4perl::Config::WATCHER;
     undef $Log::Log4perl::Config::OLD_CONFIG;
 };

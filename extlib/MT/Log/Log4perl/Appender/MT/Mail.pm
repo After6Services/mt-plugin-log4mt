@@ -15,7 +15,7 @@ use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
 has 'app' => (
     is      => 'ro',
-    isa     => quote_sub(q{ 
+    isa     => quote_sub(q{
                       die 'Not an MT::App subclass'
                         unless Scalar::Util::blessed($_[0])
                             && $_[0]->isa('MT')
@@ -26,7 +26,7 @@ has 'app' => (
 
 has 'from' => (
     is      => 'ro',
-    isa     =>  quote_sub(q{ 
+    isa     =>  quote_sub(q{
                     die "Invalid email"
                         unless $_[0] && MT::Util::is_valid_email($_[0]);
                 }),
@@ -36,7 +36,7 @@ has 'from' => (
 
 has 'content_type' => (
     is      => 'ro',
-    isa     =>  quote_sub(q{ 
+    isa     =>  quote_sub(q{
                     die 'Malformed content_type'
                         unless length($_[0]) and $_[0] =~ m/\w/
                 }),
@@ -46,7 +46,7 @@ has 'content_type' => (
 
 has 'default_recipient' => (
     is      => 'ro',
-    isa     =>  quote_sub(q{ 
+    isa     =>  quote_sub(q{
                     die "Invalid email"
                         unless $_[0] && MT::Util::is_valid_email($_[0]);
                 }),
@@ -56,7 +56,7 @@ has 'default_recipient' => (
 
 has 'default_sender' => (
     is      => 'ro',
-    isa     =>  quote_sub(q{ 
+    isa     =>  quote_sub(q{
                     die "Invalid email"
                         unless $_[0] && MT::Util::is_valid_email($_[0]);
                 }),
@@ -65,7 +65,7 @@ has 'default_sender' => (
 );
 
 sub _build_app {
-    my $app = MT->instance if try { ref $MT::mt_inst };
+    my $app = MT->instance if try { no warnings 'once'; ref $MT::mt_inst };
     unless ( $app ) {
         confess 'Log4MT attempted to send email via MT::Mail before '
               . 'MT was initialized ';

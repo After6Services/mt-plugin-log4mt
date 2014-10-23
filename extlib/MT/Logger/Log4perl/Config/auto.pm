@@ -33,7 +33,7 @@ sub _build_config {
             or die "Failed to initialize Log4perl";
     }
 
-    p $config;
+    # p $config;
     return $config;
 }
 
