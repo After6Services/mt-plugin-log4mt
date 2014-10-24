@@ -76,7 +76,7 @@ sub init {
     my $conf = $self->config || (@_ ? $self->config(+shift) : undef)
         or croak 'No config defined';
     return $conf if $conf eq '1';          # 1 returned from default.pm
-    return $self->_initializer($conf)->(); 
+    return $self->_initializer($conf)->();
 }
 
 sub reset {

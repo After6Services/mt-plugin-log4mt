@@ -63,7 +63,7 @@
         require MT::Mail;
         my $send_called = 0;
         {
-            no warnings 'redefine';
+            no warnings qw( redefine once );
             *MT::Mail::send = sub { $send_called = 1 };
         }
 
