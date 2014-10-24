@@ -118,9 +118,10 @@ sub log {
     my $from    = $log->{from} || $self->from;
     my $to      = $log->{to} || $log->{To} || $self->default_recipient;
     my $body    = $log->{message};
-    my $subject = $log->{subject}
-               // $log->{Subject}
-               // $params{log4p_level} .': '.$params{log4p_category};
+    my $subject = defined($log->{subject})      ? $log->{subject}
+                : defined($log->{Subject})      ? $log->{Subject}
+                : defined($params{log4p_level}) ? $params{log4p_level} .': '.$params{log4p_category}
+                                                : "Undefined...";
     warn "Sending from $from to $to";
     return unless $from && $to && $body && $subject;
 

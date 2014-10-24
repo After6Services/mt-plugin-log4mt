@@ -20,7 +20,7 @@ sub init {}
 sub post_init {
     my $cb  = shift;
     my $app = shift;
-    my $conf = try { path(( $ENV{MT_HOME} // $app->mt_dir ), 'log4mt.conf' ) };
+    my $conf = try { path(( $ENV{MT_HOME} || $app->mt_dir ), 'log4mt.conf' ) };
     return MT::Logger::Log4perl->reinitialize( $conf )
         if $conf && $conf->is_file;
     warn "No log4mt.conf file found in MT dir";
@@ -54,14 +54,14 @@ sub show_template_params {
     ###l4p         push( @msgs, 'Initial outgoing template parameters: ' );
     ###l4p         push( @msgs,
     ###l4p             map {
-    ###l4p                 sprintf( "\t%-30s %s", ($_//''), ($param->{$_}//''))
+    ###l4p                 sprintf( "\t%-30s %s", ($_||''), (defined($param->{$_}) ? $param->{$_} : ''))
     ###l4p             } sort keys %$param
     ###l4p         );
     ###l4p         $app->request( 'Log4MT_template_params_output', 1 );
     ###l4p     }
     ###l4p }
     ###l4p my $f = 'template_filename';
-    ###l4p push( @msgs, "Loading app template ".($param->{$f} // "[$f is NULL]" ));
+    ###l4p push( @msgs, "Loading app template ".(defined($param->{$f}) ? $param->{$f} : "[$f is NULL]" ));
     ###l4p
     ###l4p $l4p->debug($_) foreach @msgs;
 }
@@ -79,7 +79,7 @@ sub hdlr_logger {
     # Get logger from category, logger attribute or use default logger
     my $category
         = join( '.', 'MTLogger.Template',
-                     ( $args->{logger} // $args->{category} // () ));
+                     ( $args->{logger} || $args->{category} || () ));
 
     my $tmpl_logger = get_logger($category);
     my $level       = $tmpl_logger->level( uc( $args->{level} || 'INFO' ) );
@@ -92,7 +92,7 @@ sub __block_text {
     my ($ctx, $args) = @_;
     my $str      = $ctx->stash('uncompiled');
     my $compile  = $args->{compile};
-    $compile   //= defined $args->{uncompiled} ? ! $args->{uncompiled} : 1;
+    $compile   ||= defined $args->{uncompiled} ? ! $args->{uncompiled} : 1;
 
     my @msgs;
     if ($compile) {
@@ -104,8 +104,10 @@ sub __block_text {
                 $str = $content;
             }
         }
-        $str =~ s/(^\s+|\s+$)//g;
-        push( @msgs, split( /\n/, $str//'' ) );
+        $str =~ s/^\s+//;
+        $str =~ s/\s+$//;
+        # $str =~ s/(^\s+|\s+$)//g;
+        push( @msgs, split( /\n/, (defined($str) ? $str : '') ) );
     } ## end else [ if ( $tag eq 'Logger' )]
 
     return @msgs;

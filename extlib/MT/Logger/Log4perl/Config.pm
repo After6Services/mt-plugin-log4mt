@@ -29,8 +29,8 @@ has 'config' => (
 sub driver_class {
     my $self = shift;
     $self->{__driver_class} = $_[1]
-                           // $self->{__driver_class}
-                           // 'MT::Logger::Log4perl';
+                           || $self->{__driver_class}
+                           || 'MT::Logger::Log4perl';
 }
 
 has 'driver' => (
