@@ -21,9 +21,9 @@ sub log {
 
 sub _check_level {
     my ( $self, $text ) = @_;
-    state $log_class = MT->model('log');
-    state $level     = { map { $_ => $log_class->$_ }
-                            qw( DEBUG INFO WARNING ERROR FATAL SECURITY ) };
+    my $log_class = MT->model('log');
+    my $level     = { map { $_ => $log_class->$_ }
+                         qw( DEBUG INFO WARNING ERROR FATAL SECURITY ) };
     $level->{$text || 'INFO'};
 }
 

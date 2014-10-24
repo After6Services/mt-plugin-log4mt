@@ -92,19 +92,22 @@ sub _auto_initialize {
     return $config;
 }
 
-sub get_l4mtdump_filter {
-    state $_l4mtdump_filter = do {
-        my ( $mod, $func ) =   map { %$_ }
-                             first { my ($m) = %$_;
-                                     eval "require $m; 1;" ? 1 : 0;
-                                   } @$L4MTDUMP_FILTER_OPTIONS;
-        sub {
-            my $ref = shift;
-            $mod->import( return_value => 'dump', caller_info => 0 )
-                if $mod eq 'DDP';
-            return $mod->can($func)->($ref);
+{
+    my $_l4mtdump_filter;
+    sub get_l4mtdump_filter {
+        $_l4mtdump_filter = do {
+            my ( $mod, $func ) =   map { %$_ }
+                                 first { my ($m) = %$_;
+                                         eval "require $m; 1;" ? 1 : 0;
+                                       } @$L4MTDUMP_FILTER_OPTIONS;
+            sub {
+                my $ref = shift;
+                $mod->import( return_value => 'dump', caller_info => 0 )
+                    if $mod eq 'DDP';
+                return $mod->can($func)->($ref);
+            };
         };
-    };
+    }
 }
 
 sub l4mtdump {
