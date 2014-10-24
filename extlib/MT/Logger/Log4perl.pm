@@ -3,7 +3,7 @@ package MT::Logger::Log4perl;
 use Moo;
     extends 'Log::Log4perl';
 
-use 5.008009;           # 5.10.1
+use 5.008_008;
 use warnings FATAL => 'all';
 use Import::Into;
 use List::Util qw( first );

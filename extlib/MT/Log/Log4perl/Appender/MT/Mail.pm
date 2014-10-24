@@ -1,7 +1,7 @@
 package MT::Log::Log4perl::Appender::MT::Mail;
 
 use Moo;
-use v5.10.1;
+use 5.008_008;
 use Try::Tiny;
 use Carp qw( cluck confess );
 use Sub::Quote qw( quote_sub );

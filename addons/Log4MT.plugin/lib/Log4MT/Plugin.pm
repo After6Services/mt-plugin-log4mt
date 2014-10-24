@@ -1,6 +1,6 @@
 package Log4MT::Plugin;
 
-use 5.008009;
+use 5.008_008;
 use strict;
 use warnings;
 use Data::Dumper;

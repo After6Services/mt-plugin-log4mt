@@ -1,7 +1,7 @@
 package MT::Log::Log4perl::Appender::MT::Log;
 
 use Moo;
-use v5.10.1;
+use 5.008_008;
 use Try::Tiny;
 
 use Log::Log4perl;

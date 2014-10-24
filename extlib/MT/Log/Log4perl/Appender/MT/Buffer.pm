@@ -2,7 +2,7 @@ package MT::Log::Log4perl::Appender::MT::Buffer;
 
 use strict;
 use warnings;
-use v5.10.1;
+use 5.008_008;
 use parent qw( Log::Log4perl::Appender::Buffer );
 use Try::Tiny;
 
