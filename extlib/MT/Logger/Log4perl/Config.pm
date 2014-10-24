@@ -7,7 +7,6 @@ use Try::Tiny;
 use Log::Log4perl ();
 use Path::Tiny;
 use Scalar::Util qw( blessed );
-use Data::Printer output => 'STDOUT', colored => 0;
 use Carp qw( croak );
 use Carp::Always;
 

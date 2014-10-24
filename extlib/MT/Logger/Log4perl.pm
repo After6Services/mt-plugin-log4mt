@@ -13,7 +13,6 @@ use List::MoreUtils qw( part );
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
 use Carp::Always;
-use Data::Printer output => 'STDOUT', colored => 1;
 
 Log::Log4perl->wrapper_register( __PACKAGE__ );
 

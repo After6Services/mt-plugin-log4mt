@@ -10,7 +10,6 @@ use Import::Into;
 use Test::More;
 use Test::Fatal;
 use Package::Stash;
-use DDP;
 # use Carp::Always;
 
 use MT::Logger::Log4perl  ();

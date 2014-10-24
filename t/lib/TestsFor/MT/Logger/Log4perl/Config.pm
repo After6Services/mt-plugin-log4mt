@@ -7,7 +7,6 @@
     use Test::Class::Moose;
         with 'Test::Class::Moose::Role::AutoUse';
     use Test::Fatal;
-    use Data::Printer output => 'STDOUT', colored => 1;
 
     sub test_setup {
        my ( $test, $report ) = @_;

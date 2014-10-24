@@ -7,7 +7,6 @@ use Moo;
 use warnings        FATAL => 'all';
 use Try::Tiny;
 use Carp            qw( confess );
-use Data::Printer   output => 'STDOUT', colored => 0;
 use List::Util      qw( first );
 use Scalar::Util    qw( blessed );
 use Path::Tiny;
