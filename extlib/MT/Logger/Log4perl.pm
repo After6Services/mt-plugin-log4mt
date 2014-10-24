@@ -32,14 +32,14 @@ sub import  {
     my $class    = shift;
     my $importer = caller;
     my @myopts   = qw( l4mtdump get_logger );
-    my ( $myargs, $l4pargs ) = part { $_ ~~ @myopts ? 0 : 1  } @_;
+    my ( $myargs, $l4pargs ) = part { ( grep {/^$_$/} @myopts ) ? 0 : 1  } @_;
 
-    if ( 'l4mtdump' ~~ @$myargs ) {
+    if ( grep { m/l4mtdump/ } @$myargs ) {
         no strict 'refs';
         *{$importer.'::l4mtdump'} = \&l4mtdump;
     }
 
-    if ( 'get_logger' ~~ @$myargs ) {
+    if ( grep { m/get_logger/ } @$myargs ) {
         no strict 'refs';
         *{$importer.'::get_logger'} = sub { $class->get_logger(@_) };
     }
