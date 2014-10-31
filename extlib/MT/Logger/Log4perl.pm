@@ -31,7 +31,11 @@ sub import  {
     my $class    = shift;
     my $importer = caller;
     my @myopts   = qw( l4mtdump get_logger );
-    my ( $myargs, $l4pargs ) = part { ( grep {/^$_$/} @myopts ) ? 0 : 1  } @_;
+
+    my ( $myargs, $l4pargs ) = part {
+        my $arg = $_;
+        ( scalar grep { $arg eq $_ } @myopts ) ? 0 : 1
+    } @_;
 
     if ( grep { m/l4mtdump/ } @$myargs ) {
         no strict 'refs';
