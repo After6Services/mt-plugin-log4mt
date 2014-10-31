@@ -55,6 +55,8 @@ has 'default_class' => (
     default  => 'MT::Logger::Log4perl::Config::default',
 );
 
+my $CURRENT_CONFIG;  ### TODO Use MooX::ClassAttribute for this
+
 # SingleArgConstructor:
 #    MT::Logger::Log4perl::Config->new( '/path/to/log4mt.conf' );
 # Implicitly means:
@@ -75,6 +77,7 @@ sub init {
     my $self = shift;
     my $conf = $self->config || (@_ ? $self->config(+shift) : undef)
         or croak 'No config defined';
+    return 1 if $conf||'' eq $CURRENT_CONFIG||'';  # No need to reinitialize!
     return $conf if $conf eq '1';          # 1 returned from default.pm
     return $self->_initializer($conf)->();
 }
@@ -127,6 +130,7 @@ sub _initializer {
         die "Bad conf" unless $driver->initialized;
         # say STDERR "Finishing _initializer with "
         #          . (defined $conf ? $conf : 'undefined conf');
+        $CURRENT_CONFIG = $conf if $conf;
         return $conf;
     }
 }

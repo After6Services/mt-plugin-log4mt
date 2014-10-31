@@ -75,8 +75,12 @@ sub get_logger {
 sub reinitialize {
     my $self     = shift;
     my $cfg_file = shift;
-    $self->initialized
-        and (warn "Resetting for reinitialize"), $self->reset;
+
+    # if ( $self->initialized ) {
+    #     warn "Resetting for reinitialize";
+    #     $self->reset;
+    # }
+
     require Module::Load;
     Module::Load::load( $self->config_class );
     my $config = $self->config_class->new( config => $cfg_file );
