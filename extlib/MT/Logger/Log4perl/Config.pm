@@ -67,7 +67,6 @@ sub BUILDARGS {
     return { @args };
 };
 
-
 sub _new {
     my $self = shift;
     return blessed( $self ) ? $self : $self->new(@_);
@@ -105,7 +104,7 @@ sub _initializer {
     # warn "_initializer with config: ".$conf;
     my $driver = $self->driver_class;
 
-    if ($driver->initialized) {
+    if ( $driver->initialized ) {
         warn "$driver is being re-initialized";
         $driver->reset;
     }
