@@ -2,7 +2,7 @@
 {
     package TestsFor::MT::Log::Log4perl::Appender::MT::Log;
 
-    use v5.10.1;
+    use 5.008_008;
     use Test::Class::Moose;
         extends 'TestsFor::MT::Log::Log4perl::Appender::MT::Base';
         with 'Test::Class::Moose::Role::AutoUse';

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 package Test::MT::Logger::Log4perl::useimport;
 
-use 5.010;
+use 5.008_008;
 use strict;
 use warnings FATAL => 'all';
 
@@ -10,7 +10,6 @@ use Import::Into;
 use Test::More;
 use Test::Fatal;
 use Package::Stash;
-use DDP;
 # use Carp::Always;
 
 use MT::Logger::Log4perl  ();

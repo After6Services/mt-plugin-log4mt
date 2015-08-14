@@ -2,7 +2,7 @@
 {
     package TestsFor::MT::Log::Log4perl::Appender::MT::Mail;
 
-    use v5.10.1;
+    use 5.008_008;
     use Test::Class::Moose;
         with 'Test::Class::Moose::Role::AutoUse';
         extends 'TestsFor::MT::Log::Log4perl::Appender::MT::Base';
@@ -63,7 +63,7 @@
         require MT::Mail;
         my $send_called = 0;
         {
-            no warnings 'redefine';
+            no warnings qw( redefine once );
             *MT::Mail::send = sub { $send_called = 1 };
         }
 

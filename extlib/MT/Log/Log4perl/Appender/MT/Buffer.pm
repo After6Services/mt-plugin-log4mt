@@ -2,7 +2,7 @@ package MT::Log::Log4perl::Appender::MT::Buffer;
 
 use strict;
 use warnings;
-use v5.10.1;
+use 5.008_008;
 use parent qw( Log::Log4perl::Appender::Buffer );
 use Try::Tiny;
 
@@ -29,16 +29,18 @@ sub new {
     return $self;
 }
 
-sub is_mt_initialized {
-    my $self = shift;
-    state $initialized = 0;
-    unless ( $initialized ) {
-        my $app      = try { no warnings 'once'; $MT::mt_inst };
-        if ( ref($app) && $app->isa('MT') ) {
-            $initialized = 1;
+{
+    my $initialized = 0;
+    sub is_mt_initialized {
+        my $self = shift;
+        unless ( $initialized ) {
+            my $app      = try { no warnings 'once'; $MT::mt_inst };
+            if ( ref($app) && $app->isa('MT') ) {
+                $initialized = 1;
+            }
         }
+        return $initialized;
     }
-    return $initialized;
 }
 
 1;

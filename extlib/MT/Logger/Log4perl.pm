@@ -3,7 +3,7 @@ package MT::Logger::Log4perl;
 use Moo;
     extends 'Log::Log4perl';
 
-use 5.010001;           # 5.10.1
+use 5.008_008;
 use warnings FATAL => 'all';
 use Import::Into;
 use List::Util qw( first );
@@ -13,7 +13,6 @@ use List::MoreUtils qw( part );
 use Log4MT::Version;  our $VERSION = $Log4MT::Version::VERSION;
 
 use Carp::Always;
-use Data::Printer output => 'STDOUT', colored => 1;
 
 Log::Log4perl->wrapper_register( __PACKAGE__ );
 
@@ -32,14 +31,18 @@ sub import  {
     my $class    = shift;
     my $importer = caller;
     my @myopts   = qw( l4mtdump get_logger );
-    my ( $myargs, $l4pargs ) = part { $_ ~~ @myopts ? 0 : 1  } @_;
 
-    if ( 'l4mtdump' ~~ @$myargs ) {
+    my ( $myargs, $l4pargs ) = part {
+        my $arg = $_;
+        ( scalar grep { $arg eq $_ } @myopts ) ? 0 : 1
+    } @_;
+
+    if ( grep { m/l4mtdump/ } @$myargs ) {
         no strict 'refs';
         *{$importer.'::l4mtdump'} = \&l4mtdump;
     }
 
-    if ( 'get_logger' ~~ @$myargs ) {
+    if ( grep { m/get_logger/ } @$myargs ) {
         no strict 'refs';
         *{$importer.'::get_logger'} = sub { $class->get_logger(@_) };
     }
@@ -72,8 +75,12 @@ sub get_logger {
 sub reinitialize {
     my $self     = shift;
     my $cfg_file = shift;
-    $self->initialized
-        and (warn "Resetting for reinitialize"), $self->reset;
+
+    # if ( $self->initialized ) {
+    #     warn "Resetting for reinitialize";
+    #     $self->reset;
+    # }
+
     require Module::Load;
     Module::Load::load( $self->config_class );
     my $config = $self->config_class->new( config => $cfg_file );
@@ -92,19 +99,22 @@ sub _auto_initialize {
     return $config;
 }
 
-sub get_l4mtdump_filter {
-    state $_l4mtdump_filter = do {
-        my ( $mod, $func ) =   map { %$_ }
-                             first { my ($m) = %$_;
-                                     eval "require $m; 1;" ? 1 : 0;
-                                   } @$L4MTDUMP_FILTER_OPTIONS;
-        sub {
-            my $ref = shift;
-            $mod->import( return_value => 'dump', caller_info => 0 )
-                if $mod eq 'DDP';
-            return $mod->can($func)->($ref);
+{
+    my $_l4mtdump_filter;
+    sub get_l4mtdump_filter {
+        $_l4mtdump_filter = do {
+            my ( $mod, $func ) =   map { %$_ }
+                                 first { my ($m) = %$_;
+                                         eval "require $m; 1;" ? 1 : 0;
+                                       } @$L4MTDUMP_FILTER_OPTIONS;
+            sub {
+                my $ref = shift;
+                $mod->import( return_value => 'dump', caller_info => 0 )
+                    if $mod eq 'DDP';
+                return $mod->can($func)->($ref);
+            };
         };
-    };
+    }
 }
 
 sub l4mtdump {

@@ -1,13 +1,12 @@
 package MT::Logger::Log4perl::Config::default;
 
-use 5.010;
+use 5.008_008;
 use Moo;
     extends 'MT::Logger::Log4perl::Config';
 
 use warnings        FATAL => 'all';
 use Try::Tiny;
 use Carp            qw( confess );
-use Data::Printer   output => 'STDOUT', colored => 0;
 use List::Util      qw( first );
 use Scalar::Util    qw( blessed );
 use Path::Tiny;
@@ -205,7 +204,7 @@ log4perl.appender.MTLog.appender                = MTLogUnbuffered
 ###########$###########
 log4perl.appender.MTMailUnbuffered              = MT::Log::Log4perl::Appender::MT::Mail
 log4perl.appender.MTMailUnbuffered.layout       = Log::Log4perl::Layout::NoopLayout
-# log4perl.appender.MTMail.default_recipient    = 
+# log4perl.appender.MTMail.default_recipient    =
 log4perl.appender.MTMail                        = MT::Log::Log4perl::Appender::MT::Buffer
 log4perl.appender.MTMail.appender               = MTMailUnbuffered
 

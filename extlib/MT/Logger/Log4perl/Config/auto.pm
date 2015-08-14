@@ -1,12 +1,11 @@
 package MT::Logger::Log4perl::Config::auto;
 
-use 5.010;
+use 5.008_008;
 use Moo;
     extends 'MT::Logger::Log4perl::Config';
 use warnings FATAL => 'all';
 use Try::Tiny;
 use Carp qw( confess );
-use Data::Printer output => 'STDOUT', colored => 0;
 use List::Util qw( first );
 use Scalar::Util qw( blessed );
 use Path::Tiny;
@@ -32,8 +31,6 @@ sub _build_config {
         $config = $self->default_class->new()->init()
             or die "Failed to initialize Log4perl";
     }
-
-    # p $config;
     return $config;
 }
 

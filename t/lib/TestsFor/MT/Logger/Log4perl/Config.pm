@@ -2,12 +2,11 @@
 {
     package TestsFor::MT::Logger::Log4perl::Config;
 
-    use 5.010;
+    use 5.008_008;
     use MT::Logger::Log4perl;
     use Test::Class::Moose;
         with 'Test::Class::Moose::Role::AutoUse';
     use Test::Fatal;
-    use Data::Printer output => 'STDOUT', colored => 1;
 
     sub test_setup {
        my ( $test, $report ) = @_;
