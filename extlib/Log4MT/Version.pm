@@ -1,6 +1,6 @@
 package Log4MT::Version;
 
-use version 0.85; our $VERSION = qv('v2.0.1');
+use version 0.85; our $VERSION = qv('v2.1.0');
 
 =head1 NAME
 
